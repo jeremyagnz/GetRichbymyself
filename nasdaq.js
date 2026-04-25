@@ -21,13 +21,6 @@ const TF_LABELS = {
 let currentSymbol   = 'CME_MINI:NQ1!';
 let currentInterval = '5';
 
-// Track the symbol/interval that was active BEFORE each chart render.
-// These are captured just before currentSymbol/currentInterval are updated
-// so that renderChart's async callbacks can filter out TradingView's spurious
-// "revert-to-old-value" events that fire during chart initialisation.
-let _prevRenderSymbol   = currentSymbol;
-let _prevRenderInterval = currentInterval;
-
 // ─── Decision guide per timeframe ────────────────────────────────────────────
 // Tells the user exactly how to act based on what the live TA widget shows.
 
@@ -111,18 +104,22 @@ const TV_INTERVAL_MAP = {
   'D': 'D', '1D': 'D', 'W': 'W', '1W': 'W', 'M': 'M', '1M': 'M',
 };
 
+// Milliseconds to wait after onChartReady before accepting toolbar events.
+// TradingView fires spurious onSymbolChanged/onIntervalChanged events during
+// chart initialisation; this window ensures they are ignored.
+const CHART_INIT_SETTLE_MS = 1500;
+
 let tvWidgetInstance = null;
+let _settleTimer      = null;   // ID of the active settle timeout (for cleanup)
 
 function renderChart(interval, symbol) {
   const container = document.getElementById('tv-chart-container');
   container.innerHTML = '';
   tvWidgetInstance = null;
-
-  // Capture the OLD symbol/interval (before this render) so that the async
-  // callbacks below can ignore TradingView's spurious "revert-to-old-value"
-  // onSymbolChanged / onIntervalChanged events that fire during chart init.
-  const prevSymbol   = _prevRenderSymbol;
-  const prevInterval = _prevRenderInterval;
+  // Cancel any pending settle timer from a previous chart instance so it
+  // cannot flip `settled` on a new chart render.
+  clearTimeout(_settleTimer);
+  _settleTimer = null;
 
   const inner = document.createElement('div');
   inner.id = 'tv_nasdaq_' + Date.now();
@@ -153,14 +150,25 @@ function renderChart(interval, symbol) {
     tvWidgetInstance = widget;
 
     widget.onChartReady(() => {
-      // Sync TA widget when user changes timeframe inside the chart toolbar
+      // TradingView fires spurious onSymbolChanged / onIntervalChanged events
+      // immediately after the chart finishes initialising (confirming its own
+      // symbol/interval, or echoing a previous session's values).  We ignore
+      // ALL events for a short window after onChartReady so we only react to
+      // deliberate user interactions with the chart toolbar.
+      let settled = false;
+      _settleTimer = setTimeout(() => {
+        // Only mark settled for the currently active chart instance.
+        if (widget === tvWidgetInstance) settled = true;
+        _settleTimer = null;
+      }, CHART_INIT_SETTLE_MS);
+
+      // Sync TA widget when user changes timeframe inside the chart toolbar.
+      // Guard 1 (!settled): ignores spurious init events within the settle window.
+      // Guard 2 (widget !== tvWidgetInstance): defence-in-depth for superseded instances.
       widget.activeChart().onIntervalChanged().subscribe(null, (newInterval) => {
-        // Ignore events from a superseded chart instance
-        if (widget !== tvWidgetInstance) return;
+        if (!settled || widget !== tvWidgetInstance) return;
         const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
-        // TradingView can fire onIntervalChanged during chart init with the
-        // previous chart's interval (before the new one loads).  Ignore that.
-        if (mapped === interval || mapped === prevInterval) return;
+        if (mapped === currentInterval) return;
         currentInterval = mapped;
         // Highlight the matching TF button (if any)
         document.querySelectorAll('.tf-btn').forEach(b => {
@@ -173,20 +181,11 @@ function renderChart(interval, symbol) {
 
       // Sync TA widget when user searches a different symbol inside the chart
       widget.activeChart().onSymbolChanged().subscribe(null, () => {
-        // Ignore events from a superseded chart instance
-        if (widget !== tvWidgetInstance) return;
+        if (!settled || widget !== tvWidgetInstance) return;
         try {
           const newSymbol = widget.activeChart().symbol();
-          if (!newSymbol) return;
-          // TradingView may omit the exchange prefix in the event (e.g. reporting
-          // "NQ1!" when the chart was loaded as "CME_MINI:NQ1!").  Normalise
-          // both sides before comparing so prefix differences are not a problem.
-          const newBase = symBase(newSymbol);
-          // Ignore if TV is just confirming the symbol this chart was loaded with.
-          if (newBase === symBase(symbol)) return;
-          // Ignore spurious "revert-to-old-symbol" event fired during chart init.
-          if (newBase === symBase(prevSymbol)) return;
-          // It is a genuine user-initiated change from the chart toolbar.
+          // symBase strips exchange prefix so "FX:EURUSD" === "EURUSD" etc.
+          if (!newSymbol || symBase(newSymbol) === symBase(currentSymbol)) return;
           currentSymbol = newSymbol;
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
@@ -374,7 +373,6 @@ function applySymbol() {
     return;
   }
   errEl.hidden = true;
-  _prevRenderSymbol = currentSymbol;
   currentSymbol = raw;
   renderAll();
 }
@@ -391,7 +389,6 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    _prevRenderInterval = currentInterval;
     currentInterval = btn.dataset.interval;
     renderAll();
   });
