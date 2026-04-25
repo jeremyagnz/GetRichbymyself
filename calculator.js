@@ -348,19 +348,71 @@ document.getElementById('calcForm').addEventListener('submit', function (e) {
     costsPerAccount:    g('costsPerAccount'),
   };
 
-  // Basic validation
+  // Inline validation helpers
+  const formErr = document.getElementById('form-error');
+  function showError(msg) {
+    formErr.textContent = msg;
+    formErr.hidden = false;
+    formErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  formErr.hidden = true;
+
   if (p.target <= 0 || p.stopLoss <= 0) {
-    alert('Target y Stop Loss deben ser mayores a cero.');
+    showError('⚠️ Target y Stop Loss deben ser mayores a cero.');
     return;
   }
   if (p.winRate <= 0 || p.winRate >= 1) {
-    alert('Win rate debe estar entre 1% y 99%.');
+    showError('⚠️ Win rate debe estar entre 1% y 99%.');
     return;
   }
   if (p.capitalPerAccount <= 0) {
-    alert('El capital por cuenta debe ser mayor a cero.');
+    showError('⚠️ El capital por cuenta debe ser mayor a cero.');
     return;
   }
 
-  renderResults(p);
+  // Loading state
+  const btn = document.getElementById('calc-btn');
+  const btnText = btn.querySelector('.btn-text');
+  const btnSpinner = btn.querySelector('.btn-spinner');
+  btn.disabled = true;
+  btnText.hidden = true;
+  btnSpinner.hidden = false;
+
+  // Defer rendering so the browser can paint the loading state first
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      renderResults(p);
+      btn.disabled = false;
+      btnText.hidden = false;
+      btnSpinner.hidden = true;
+      // Update system params panel in the trading guide
+      updateSystemParams(p);
+    }, 60);
+  });
 });
+
+// ─── Sync system params panel with calculator values ─────────────────────────
+
+function updateSystemParams(p) {
+  const rrRatio  = p.target / p.stopLoss;
+  const breakEven = p.stopLoss / (p.target + p.stopLoss);
+
+  const spTarget = document.getElementById('sp-target');
+  const spSL     = document.getElementById('sp-stoploss');
+  const spWR     = document.getElementById('sp-winrate');
+  const spRR     = document.getElementById('sp-rr');
+  const spBE     = document.getElementById('sp-be');
+
+  if (spTarget) spTarget.textContent = fmtMoney(p.target);
+  if (spSL)     spSL.textContent     = fmtMoney(p.stopLoss);
+  if (spWR)     spWR.textContent     = fmtPct(p.winRate * 100, 0);
+  if (spRR)     spRR.textContent     = fmt(rrRatio);
+  if (spBE)     spBE.textContent     = fmtPct(breakEven * 100, 0);
+
+  // Expose params globally so nasdaq.js can use them in the decision guide note
+  window.calcParams = p;
+  // If renderDecisionGuide is already available (nasdaq.js loaded), refresh it
+  if (typeof renderDecisionGuide === 'function' && typeof taInterval !== 'undefined') {
+    renderDecisionGuide(taInterval, taSymbol);
+  }
+}

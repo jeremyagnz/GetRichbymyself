@@ -8,12 +8,30 @@
 </head>
 <body>
 
-<header>
+<nav class="top-nav" id="top-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top">📈 TradingCalc</a>
+    <div class="nav-links">
+      <a class="nav-link" href="#calc-section">Calculadora</a>
+      <a class="nav-link" href="#results" id="nav-results-link">Resultados</a>
+      <a class="nav-link" href="#nasdaq-section">Análisis en Vivo</a>
+    </div>
+    <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menú">☰</button>
+  </div>
+  <div class="nav-mobile-menu" id="nav-mobile-menu" hidden>
+    <a class="nav-mobile-link" href="#calc-section">Calculadora</a>
+    <a class="nav-mobile-link" href="#results">Resultados</a>
+    <a class="nav-mobile-link" href="#nasdaq-section">Análisis en Vivo</a>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="header-badge">Herramienta profesional de trading</div>
   <h1>📈 Trading Performance Calculator</h1>
   <p>Calcula proyecciones de rentabilidad individual y multi-cuenta (copy trading)</p>
 </header>
 
-<div class="container">
+<div class="container" id="calc-section">
 
   <!-- ─── INPUT FORM ──────────────────────────────────────────────────────── -->
   <form id="calcForm">
@@ -44,10 +62,10 @@
           <input type="number" id="daysPerWeek" value="5" min="1" max="7" step="1" required />
         </div>
         <div class="field">
-          <label>Tiempo a proyectar</label>
-          <div style="display:flex;gap:8px;">
-            <input type="number" id="timeValue" value="5" min="1" step="1" required style="flex:1" />
-            <select id="timeUnit" style="width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:.95rem;outline:none;">
+          <label for="timeValue">Tiempo a proyectar</label>
+          <div class="field-row">
+            <input type="number" id="timeValue" value="5" min="1" step="1" required class="field-row-input" />
+            <select id="timeUnit" class="field-row-select">
               <option value="weeks">Semanas</option>
               <option value="months" selected>Meses</option>
             </select>
@@ -80,7 +98,11 @@
           <input type="number" id="costsPerAccount" value="0" min="0" step="any" />
         </div>
 
-        <button type="submit" class="btn">🚀 Calcular proyección</button>
+        <button type="submit" class="btn" id="calc-btn">
+          <span class="btn-text">🚀 Calcular proyección</span>
+          <span class="btn-spinner" hidden>⏳ Calculando…</span>
+        </button>
+        <div id="form-error" class="form-error" hidden></div>
       </div>
 
     </div>
@@ -198,11 +220,11 @@
       <h2><span class="icon">🧠</span> Cómo operar esta señal</h2>
       <div id="decision-guide"></div>
       <div class="system-params">
-        <div class="sp-row"><span>Target por trade</span><span class="sp-val positive">$400</span></div>
-        <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative">$300</span></div>
-        <div class="sp-row"><span>Win Rate objetivo</span><span class="sp-val neutral">67 %</span></div>
-        <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral">1.33</span></div>
-        <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning">43 %</span></div>
+        <div class="sp-row"><span>Target por trade</span><span class="sp-val positive" id="sp-target">$400</span></div>
+        <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative" id="sp-stoploss">$300</span></div>
+        <div class="sp-row"><span>Win Rate objetivo</span><span class="sp-val neutral" id="sp-winrate">67 %</span></div>
+        <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral" id="sp-rr">1.33</span></div>
+        <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning" id="sp-be">43 %</span></div>
       </div>
     </div>
   </div>
@@ -210,9 +232,19 @@
   <!-- Collapsible per-timeframe strategic notes -->
   <details class="card tf-tips-card" id="tf-tips-details">
     <summary>📚 Guía estratégica – <span id="tf-tips-label">5 min</span> <span class="summary-hint">(clic para expandir)</span></summary>
-    <div id="tf-analysis-body" style="margin-top:14px;"></div>
+    <div id="tf-analysis-body" class="tf-analysis-body"></div>
   </details>
 </div>
+
+<button class="scroll-top-btn" id="scroll-top-btn" aria-label="Volver arriba" title="Volver arriba">↑</button>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>📈 Trading Performance Calculator</span>
+    <span class="footer-sep">·</span>
+    <span>Herramienta educativa — no constituye asesoramiento financiero</span>
+  </div>
+</footer>
 
 <script src="calculator.js"></script>
 <script src="nasdaq.js"></script>

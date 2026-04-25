@@ -319,11 +319,23 @@ function renderDecisionGuide(interval, symbol) {
         <span>${sym(guide.avoid)}</span>
       </div>
     </div>
-    <div class="dec-note">
-      Regla de oro: solo entra si R/R ≥ 1.33 ($400 target / $300 SL) y la señal del widget
-      coincide con la dirección del marco superior.
-    </div>
+    ${buildDecNote()}
   `;
+}
+
+function buildDecNote() {
+  const cp = window.calcParams;
+  if (cp) {
+    const rr = (cp.target / cp.stopLoss).toFixed(2);
+    return `<div class="dec-note">
+      Regla de oro: solo entra si R/R ≥ ${rr} ($${cp.target} target / $${cp.stopLoss} SL) y la señal del widget
+      coincide con la dirección del marco superior.
+    </div>`;
+  }
+  return `<div class="dec-note">
+    Regla de oro: solo entra si R/R ≥ 1.33 ($400 target / $300 SL) y la señal del widget
+    coincide con la dirección del marco superior.
+  </div>`;
 }
 
 // ─── Per-timeframe strategic tips (collapsible) ───────────────────────────────
@@ -494,3 +506,63 @@ function renderAll() {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 renderAll();
+
+// ─── Scroll-to-top button ────────────────────────────────────────────────────
+
+(function () {
+  const btn = document.getElementById('scroll-top-btn');
+  if (!btn) return;
+
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+// ─── Nav: highlight active section + mobile menu toggle ──────────────────────
+
+(function () {
+  const menuBtn  = document.getElementById('nav-menu-btn');
+  const mobileMenu = document.getElementById('nav-mobile-menu');
+
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', () => {
+      const isHidden = mobileMenu.hidden;
+      mobileMenu.hidden = !isHidden;
+      menuBtn.textContent = isHidden ? '✕' : '☰';
+    });
+
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        mobileMenu.hidden = true;
+        menuBtn.textContent = '☰';
+      });
+    });
+  }
+
+  // Highlight nav link for the visible section
+  const sections = [
+    { id: 'calc-section',   link: document.querySelector('.nav-link[href="#calc-section"]') },
+    { id: 'results',        link: document.querySelector('.nav-link[href="#results"]') },
+    { id: 'nasdaq-section', link: document.querySelector('.nav-link[href="#nasdaq-section"]') },
+  ];
+
+  function updateActiveNav() {
+    const mid = window.scrollY + window.innerHeight / 2;
+    let active = sections[0];
+    for (const s of sections) {
+      const el = document.getElementById(s.id);
+      if (!el) continue;
+      if (el.offsetTop <= mid) active = s;
+    }
+    sections.forEach(s => s.link && s.link.classList.remove('active'));
+    if (active.link) active.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+})();
