@@ -82,6 +82,15 @@ const DECISION_GUIDE = {
   },
 };
 
+// ─── Symbol helpers ──────────────────────────────────────────────────────────
+
+// Returns the ticker without an optional exchange prefix (e.g. "CME_MINI:NQ1!" → "NQ1!").
+// TradingView sometimes reports symbols without the exchange prefix in its
+// onSymbolChanged events, so comparisons must use this normalised form.
+function symBase(s) {
+  return (s && s.includes(':')) ? s.split(':').pop() : s;
+}
+
 // ─── TradingView chart widget ─────────────────────────────────────────────────
 
 let tvScriptLoaded = false;
@@ -168,10 +177,16 @@ function renderChart(interval, symbol) {
         if (widget !== tvWidgetInstance) return;
         try {
           const newSymbol = widget.activeChart().symbol();
-          if (!newSymbol || newSymbol === currentSymbol) return;
-          // TradingView can fire onSymbolChanged during chart init with the
-          // previous chart's symbol (before the new one loads).  Ignore that.
-          if (newSymbol === prevSymbol) return;
+          if (!newSymbol) return;
+          // TradingView may omit the exchange prefix in the event (e.g. reporting
+          // "NQ1!" when the chart was loaded as "CME_MINI:NQ1!").  Normalise
+          // both sides before comparing so prefix differences are not a problem.
+          const newBase = symBase(newSymbol);
+          // Ignore if TV is just confirming the symbol this chart was loaded with.
+          if (newBase === symBase(symbol)) return;
+          // Ignore spurious "revert-to-old-symbol" event fired during chart init.
+          if (newBase === symBase(prevSymbol)) return;
+          // It is a genuine user-initiated change from the chart toolbar.
           currentSymbol = newSymbol;
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
