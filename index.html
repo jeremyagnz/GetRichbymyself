@@ -114,7 +114,7 @@
 <!-- ─── NASDAQ SECTION ──────────────────────────────────────────────────────── -->
 <div class="container" id="nasdaq-section">
   <div class="section-title nasdaq-title">📊 Análisis en Tiempo Real</div>
-  <p class="nasdaq-subtitle">Busca cualquier activo (NASDAQ, divisas, acciones, crypto) y el gráfico y la señal en vivo se actualizarán para ese par.</p>
+  <p class="nasdaq-subtitle">Busca cualquier activo (acciones, divisas, crypto, futuros) y el gráfico con la señal en vivo se actualizarán para ese símbolo.</p>
 
   <!-- Symbol search + timeframe selector -->
   <div class="symbol-bar">
@@ -131,6 +131,7 @@
       />
       <button id="symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
     </div>
+    <p id="symbol-error" class="symbol-error" hidden></p>
     <div class="tf-selector">
       <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
       <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>

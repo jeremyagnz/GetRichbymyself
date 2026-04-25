@@ -113,7 +113,7 @@ function renderChart(interval, symbol) {
       enable_publishing: false,
       hide_top_toolbar: false,
       hide_side_toolbar: false,
-      allow_symbol_change: false,
+      allow_symbol_change: true,
       studies: ['RSI@tv-basicstudies', 'VWAP@tv-basicstudies', 'MAExp@tv-basicstudies'],
       container_id: inner.id,
     });
@@ -263,9 +263,20 @@ function renderTips(interval) {
 
 // ─── Symbol input ─────────────────────────────────────────────────────────────
 
+// ─── Symbol validation ─────────────────────────────────────────────────────
+// Accepts letters, digits, colon (for exchange prefix), dot, hyphen, underscore.
+const SYMBOL_RE = /^[A-Z0-9:._\-]{1,30}$/;
+
 function applySymbol() {
   const raw = document.getElementById('symbol-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('symbol-error');
   if (!raw) return;
+  if (!SYMBOL_RE.test(raw)) {
+    errEl.textContent = '⚠️ Símbolo inválido. Usa solo letras, números y ":" para el exchange (ej: AAPL, EURUSD, BINANCE:BTCUSDT).';
+    errEl.hidden = false;
+    return;
+  }
+  errEl.hidden = true;
   currentSymbol = raw;
   renderAll();
 }
