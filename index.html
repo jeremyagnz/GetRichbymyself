@@ -113,17 +113,32 @@
 
 <!-- ─── NASDAQ SECTION ──────────────────────────────────────────────────────── -->
 <div class="container" id="nasdaq-section">
-  <div class="section-title nasdaq-title">📊 NASDAQ – Análisis en Tiempo Real</div>
-  <p class="nasdaq-subtitle">Selecciona el temporalidad para ver el gráfico en vivo y el análisis alineado a tu sistema de trading.</p>
+  <div class="section-title nasdaq-title">📊 Análisis en Tiempo Real</div>
+  <p class="nasdaq-subtitle">Busca cualquier activo (NASDAQ, divisas, acciones, crypto) y el gráfico y la señal en vivo se actualizarán para ese par.</p>
 
-  <!-- Timeframe selector -->
-  <div class="tf-selector">
-    <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
-    <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>
-    <button class="tf-btn"        data-interval="30"  data-label="30 min">30 min</button>
-    <button class="tf-btn"        data-interval="60"  data-label="1 hora">1 hora</button>
-    <button class="tf-btn"        data-interval="240" data-label="4 horas">4 horas</button>
-    <button class="tf-btn"        data-interval="D"   data-label="1 día">1 día</button>
+  <!-- Symbol search + timeframe selector -->
+  <div class="symbol-bar">
+    <div class="symbol-input-wrapper">
+      <span class="symbol-search-icon">🔍</span>
+      <input
+        type="text"
+        id="symbol-input"
+        class="symbol-input"
+        value="CME_MINI:NQ1!"
+        placeholder="Ej: AAPL, EURUSD, BTCUSDT, CME_MINI:NQ1!"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button id="symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
+    </div>
+    <div class="tf-selector">
+      <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
+      <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>
+      <button class="tf-btn"        data-interval="30"  data-label="30 min">30 min</button>
+      <button class="tf-btn"        data-interval="60"  data-label="1 hora">1 hora</button>
+      <button class="tf-btn"        data-interval="240" data-label="4 horas">4 horas</button>
+      <button class="tf-btn"        data-interval="D"   data-label="1 día">1 día</button>
+    </div>
   </div>
 
   <!-- TradingView Chart -->
@@ -135,7 +150,7 @@
   <div class="nasdaq-live-grid">
     <!-- TradingView Technical Analysis Widget – real live signal -->
     <div class="card live-signal-card">
-      <h2><span class="icon">📡</span> Señal en Vivo – <span id="live-signal-tf">5 min</span></h2>
+      <h2><span class="icon">📡</span> Señal en Vivo – <span id="live-signal-tf">5 min</span> · <span id="live-signal-symbol" class="symbol-badge">NQ1!</span></h2>
       <p class="ta-hint">Indicadores en tiempo real de TradingView (osciladores + medias móviles)</p>
       <div id="ta-widget-container"></div>
     </div>

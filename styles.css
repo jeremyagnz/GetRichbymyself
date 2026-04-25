@@ -308,12 +308,82 @@ header p {
   margin-bottom: 20px;
 }
 
+/* Symbol bar (input + timeframe selector together) */
+.symbol-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.symbol-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  transition: border-color .2s;
+}
+
+.symbol-input-wrapper:focus-within {
+  border-color: var(--accent);
+}
+
+.symbol-search-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.symbol-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: .04em;
+}
+
+.symbol-input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.symbol-apply-btn {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+
+.symbol-apply-btn:hover { opacity: .85; }
+
+.symbol-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--accent2);
+  background: #1e2a45;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: .05em;
+}
+
 /* Timeframe buttons */
 .tf-selector {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .tf-btn {
@@ -344,6 +414,7 @@ header p {
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
+  margin-top: 16px;
   margin-bottom: 20px;
   min-height: 502px;
   background: var(--surface);

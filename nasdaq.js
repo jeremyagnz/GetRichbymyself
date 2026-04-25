@@ -17,6 +17,10 @@ const TF_LABELS = {
   '60': '1 hora', '240': '4 horas', 'D': '1 día',
 };
 
+// Default symbol and active interval
+let currentSymbol   = 'CME_MINI:NQ1!';
+let currentInterval = '5';
+
 // ─── Decision guide per timeframe ────────────────────────────────────────────
 // Tells the user exactly how to act based on what the live TA widget shows.
 
@@ -84,7 +88,7 @@ function loadTVScript(callback) {
   document.head.appendChild(script);
 }
 
-function renderChart(interval) {
+function renderChart(interval, symbol) {
   const container = document.getElementById('tv-chart-container');
   container.innerHTML = '';
 
@@ -97,7 +101,7 @@ function renderChart(interval) {
     new TradingView.widget({
       width: '100%',
       height: 520,
-      symbol: 'CME_MINI:NQ1!',
+      symbol: symbol,
       interval: interval,
       timezone: 'America/New_York',
       theme: 'dark',
@@ -109,7 +113,7 @@ function renderChart(interval) {
       enable_publishing: false,
       hide_top_toolbar: false,
       hide_side_toolbar: false,
-      allow_symbol_change: true,
+      allow_symbol_change: false,
       studies: ['RSI@tv-basicstudies', 'VWAP@tv-basicstudies', 'MAExp@tv-basicstudies'],
       container_id: inner.id,
     });
@@ -118,7 +122,7 @@ function renderChart(interval) {
 
 // ─── TradingView Technical Analysis widget (LIVE signals) ────────────────────
 
-function renderTAWidget(interval) {
+function renderTAWidget(interval, symbol) {
   const taInterval = TA_INTERVAL_MAP[interval] || '1h';
   const container = document.getElementById('ta-widget-container');
   container.innerHTML = '';
@@ -145,7 +149,7 @@ function renderTAWidget(interval) {
     width: '100%',
     isTransparent: true,
     height: 400,
-    symbol: 'CME_MINI:NQ1!',
+    symbol: symbol,
     showIntervalTabs: false,
     displayMode: 'multiple',
     locale: 'es',
@@ -154,6 +158,10 @@ function renderTAWidget(interval) {
 
   wrapper.appendChild(script);
   container.appendChild(wrapper);
+
+  // Show the symbol name in the card header
+  const shortLabel = symbol.includes(':') ? symbol.split(':')[1] : symbol;
+  document.getElementById('live-signal-symbol').textContent = shortLabel;
 }
 
 // ─── Decision guide renderer ─────────────────────────────────────────────────
@@ -253,26 +261,39 @@ function renderTips(interval) {
   ).join('');
 }
 
-// ─── Timeframe buttons ────────────────────────────────────────────────────────
+// ─── Symbol input ─────────────────────────────────────────────────────────────
 
-let currentInterval = '5';
+function applySymbol() {
+  const raw = document.getElementById('symbol-input').value.trim().toUpperCase();
+  if (!raw) return;
+  currentSymbol = raw;
+  renderAll();
+}
+
+document.getElementById('symbol-apply-btn').addEventListener('click', applySymbol);
+
+document.getElementById('symbol-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applySymbol();
+});
+
+// ─── Timeframe buttons ────────────────────────────────────────────────────────
 
 document.querySelectorAll('.tf-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentInterval = btn.dataset.interval;
-    renderChart(currentInterval);
-    renderTAWidget(currentInterval);
-    renderDecisionGuide(currentInterval);
-    renderTips(currentInterval);
+    renderAll();
   });
 });
 
+function renderAll() {
+  renderChart(currentInterval, currentSymbol);
+  renderTAWidget(currentInterval, currentSymbol);
+  renderDecisionGuide(currentInterval);
+  renderTips(currentInterval);
+}
+
 // ─── Init ────────────────────────────────────────────────────────────────────
 
-renderChart(currentInterval);
-renderTAWidget(currentInterval);
-renderDecisionGuide(currentInterval);
-renderTips(currentInterval);
-
+renderAll();
