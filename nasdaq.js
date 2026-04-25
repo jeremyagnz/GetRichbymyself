@@ -21,6 +21,13 @@ const TF_LABELS = {
 let currentSymbol   = 'CME_MINI:NQ1!';
 let currentInterval = '5';
 
+// Track the symbol/interval that was active BEFORE each chart render.
+// These are captured just before currentSymbol/currentInterval are updated
+// so that renderChart's async callbacks can filter out TradingView's spurious
+// "revert-to-old-value" events that fire during chart initialisation.
+let _prevRenderSymbol   = currentSymbol;
+let _prevRenderInterval = currentInterval;
+
 // ─── Decision guide per timeframe ────────────────────────────────────────────
 // Tells the user exactly how to act based on what the live TA widget shows.
 
@@ -102,9 +109,11 @@ function renderChart(interval, symbol) {
   container.innerHTML = '';
   tvWidgetInstance = null;
 
-  // Capture the symbol this chart replaced so that onSymbolChanged can ignore
-  // any spurious TradingView "revert-to-old-symbol" init events.
-  const prevSymbol = currentSymbol;
+  // Capture the OLD symbol/interval (before this render) so that the async
+  // callbacks below can ignore TradingView's spurious "revert-to-old-value"
+  // onSymbolChanged / onIntervalChanged events that fire during chart init.
+  const prevSymbol   = _prevRenderSymbol;
+  const prevInterval = _prevRenderInterval;
 
   const inner = document.createElement('div');
   inner.id = 'tv_nasdaq_' + Date.now();
@@ -140,6 +149,9 @@ function renderChart(interval, symbol) {
         // Ignore events from a superseded chart instance
         if (widget !== tvWidgetInstance) return;
         const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
+        // TradingView can fire onIntervalChanged during chart init with the
+        // previous chart's interval (before the new one loads).  Ignore that.
+        if (mapped === interval || mapped === prevInterval) return;
         currentInterval = mapped;
         // Highlight the matching TF button (if any)
         document.querySelectorAll('.tf-btn').forEach(b => {
@@ -333,19 +345,21 @@ function renderTips(interval) {
 // ─── Symbol input ─────────────────────────────────────────────────────────────
 
 // ─── Symbol validation ─────────────────────────────────────────────────────
-// Accepts letters, digits, colon (for exchange prefix), dot, hyphen, underscore.
-const SYMBOL_RE = /^[A-Z0-9:._\-]{1,30}$/;
+// Accepts letters, digits, colon (for exchange prefix), dot, hyphen, underscore,
+// and exclamation mark (used in futures symbols like NQ1!, CME_MINI:NQ1!).
+const SYMBOL_RE = /^[A-Z0-9:._\-!]{1,30}$/;
 
 function applySymbol() {
   const raw = document.getElementById('symbol-input').value.trim().toUpperCase();
   const errEl = document.getElementById('symbol-error');
   if (!raw) return;
   if (!SYMBOL_RE.test(raw)) {
-    errEl.textContent = '⚠️ Símbolo inválido. Usa solo letras, números y ":" para el exchange (ej: AAPL, EURUSD, BINANCE:BTCUSDT).';
+    errEl.textContent = '⚠️ Símbolo inválido. Usa solo letras, números y ":" para el exchange (ej: AAPL, EURUSD, BINANCE:BTCUSDT, CME_MINI:NQ1!).';
     errEl.hidden = false;
     return;
   }
   errEl.hidden = true;
+  _prevRenderSymbol = currentSymbol;
   currentSymbol = raw;
   renderAll();
 }
@@ -362,6 +376,7 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    _prevRenderInterval = currentInterval;
     currentInterval = btn.dataset.interval;
     renderAll();
   });
