@@ -153,6 +153,43 @@
     <div class="card live-signal-card">
       <h2><span class="icon">📡</span> Señal en Vivo – <span id="live-signal-tf">5 min</span> · <span id="live-signal-symbol" class="symbol-badge">NQ1!</span></h2>
       <p class="ta-hint">Indicadores en tiempo real de TradingView (osciladores + medias móviles)</p>
+
+      <!-- TA-only symbol search + TF selector -->
+      <div class="ta-mini-bar">
+        <div class="symbol-input-wrapper">
+          <span class="symbol-search-icon">🔍</span>
+          <input
+            type="text"
+            id="ta-symbol-input"
+            class="symbol-input"
+            value="CME_MINI:NQ1!"
+            placeholder="Ej: EURUSD, NQ1!, AAPL, XAUUSD…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="ta-symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
+        </div>
+        <p id="ta-symbol-error" class="symbol-error" hidden></p>
+        <!-- Quick-select popular symbols -->
+        <div class="ta-symbol-chips">
+          <button class="ta-sym-chip" data-symbol="CME_MINI:NQ1!">NQ1! (Nasdaq)</button>
+          <button class="ta-sym-chip" data-symbol="EURUSD">EUR/USD</button>
+          <button class="ta-sym-chip" data-symbol="GBPUSD">GBP/USD</button>
+          <button class="ta-sym-chip" data-symbol="XAUUSD">Oro</button>
+          <button class="ta-sym-chip" data-symbol="BITSTAMP:BTCUSD">Bitcoin</button>
+          <button class="ta-sym-chip" data-symbol="NASDAQ:AAPL">AAPL</button>
+          <button class="ta-sym-chip" data-symbol="NASDAQ:SPY">SPY</button>
+        </div>
+        <div class="tf-selector ta-tf-selector">
+          <button class="ta-tf-btn active" data-interval="5">5 min</button>
+          <button class="ta-tf-btn" data-interval="15">15 min</button>
+          <button class="ta-tf-btn" data-interval="30">30 min</button>
+          <button class="ta-tf-btn" data-interval="60">1 hora</button>
+          <button class="ta-tf-btn" data-interval="240">4 horas</button>
+          <button class="ta-tf-btn" data-interval="D">1 día</button>
+        </div>
+      </div>
+
       <div id="ta-widget-container"></div>
     </div>
 
