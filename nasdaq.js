@@ -136,7 +136,10 @@ function renderTAWidget(interval) {
   script.type = 'text/javascript';
   script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js';
   script.async = true;
-  // Config must be inline text of the script tag (not src attribute)
+  // TradingView embed widgets are configured via the *text content* of their
+  // own script tag (they call document.currentScript.textContent internally).
+  // JSON.stringify produces valid JSON which the widget parses as its config.
+  // This is the documented TradingView embed pattern and is NOT eval'd JS.
   script.textContent = JSON.stringify({
     interval: taInterval,
     width: '100%',
@@ -163,6 +166,9 @@ function renderDecisionGuide(interval) {
   document.getElementById('live-signal-tf').textContent = tfLabel;
   document.getElementById('tf-tips-label').textContent  = tfLabel;
 
+  // All values (guide.*, TF_TIPS[].text) are static strings defined in this
+  // file — they are never populated from user input or external sources.
+  // innerHTML is used deliberately to render <strong> tags within those strings.
   document.getElementById('decision-guide').innerHTML = `
     <div class="signal-legend">
       <div class="sig-title">Lee la señal del widget y actúa:</div>
@@ -241,6 +247,7 @@ const TF_TIPS = {
 function renderTips(interval) {
   const tips = TF_TIPS[interval];
   if (!tips) return;
+  // t.icon and t.text are static strings from this file, not external input.
   document.getElementById('tf-analysis-body').innerHTML = tips.map(t =>
     `<div class="tf-signal"><span class="tf-signal-icon">${t.icon}</span><span>${t.text}</span></div>`
   ).join('');
