@@ -140,7 +140,7 @@ function renderChart(interval, symbol) {
           b.classList.toggle('active', b.dataset.interval === mapped);
         });
         renderTAWidget(currentInterval, currentSymbol);
-        renderDecisionGuide(currentInterval);
+        renderDecisionGuide(currentInterval, currentSymbol);
         renderTips(currentInterval);
       });
 
@@ -153,6 +153,7 @@ function renderChart(interval, symbol) {
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
           renderTAWidget(currentInterval, currentSymbol);
+          renderDecisionGuide(currentInterval, currentSymbol);
         } catch (_) { /* chart not ready yet */ }
       });
     });
@@ -166,24 +167,11 @@ function renderTAWidget(interval, symbol) {
   const container = document.getElementById('ta-widget-container');
   container.innerHTML = '';
 
-  // The TA embed widget is self-contained: create its required structure then
-  // inject the config script. Each call creates a fresh instance.
-  const wrapper = document.createElement('div');
-  wrapper.className = 'tradingview-widget-container';
-
-  const widgetDiv = document.createElement('div');
-  widgetDiv.className = 'tradingview-widget-container__widget';
-  wrapper.appendChild(widgetDiv);
-
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js';
-  script.async = true;
-  // TradingView embed widgets are configured via the *text content* of their
-  // own script tag (they call document.currentScript.textContent internally).
-  // JSON.stringify produces valid JSON which the widget parses as its config.
-  // This is the documented TradingView embed pattern and is NOT eval'd JS.
-  script.textContent = JSON.stringify({
+  // Use an iframe so each call loads a completely fresh widget instance for
+  // the selected symbol and timeframe. The script-tag approach is NOT used
+  // here because browsers cache same-src scripts and never re-execute them,
+  // which caused the widget to stay frozen on the initial NQ1!/5min values.
+  const config = {
     interval: taInterval,
     width: '100%',
     isTransparent: true,
@@ -193,10 +181,15 @@ function renderTAWidget(interval, symbol) {
     displayMode: 'multiple',
     locale: 'es',
     colorTheme: 'dark',
-  });
+  };
 
-  wrapper.appendChild(script);
-  container.appendChild(wrapper);
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.html?locale=es#'
+    + encodeURIComponent(JSON.stringify(config));
+  iframe.style.cssText = 'display:block;width:100%;height:400px;border:none;';
+  iframe.setAttribute('scrolling', 'no');
+  iframe.setAttribute('allowtransparency', 'true');
+  container.appendChild(iframe);
 
   // Show the symbol name in the card header
   const shortLabel = symbol.includes(':') ? symbol.split(':')[1] : symbol;
@@ -205,13 +198,18 @@ function renderTAWidget(interval, symbol) {
 
 // ─── Decision guide renderer ─────────────────────────────────────────────────
 
-function renderDecisionGuide(interval) {
+function renderDecisionGuide(interval, symbol) {
   const guide = DECISION_GUIDE[interval];
   if (!guide) return;
 
-  const tfLabel = TF_LABELS[interval] || interval;
-  document.getElementById('live-signal-tf').textContent = tfLabel;
-  document.getElementById('tf-tips-label').textContent  = tfLabel;
+  const tfLabel   = TF_LABELS[interval] || interval;
+  const shortLabel = symbol
+    ? (symbol.includes(':') ? symbol.split(':')[1] : symbol)
+    : 'NQ1!';
+
+  document.getElementById('live-signal-tf').textContent     = tfLabel;
+  document.getElementById('live-signal-symbol').textContent = shortLabel;
+  document.getElementById('tf-tips-label').textContent      = tfLabel;
 
   // All values (guide.*, TF_TIPS[].text) are static strings defined in this
   // file — they are never populated from user input or external sources.
@@ -340,7 +338,7 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
 function renderAll() {
   renderChart(currentInterval, currentSymbol);
   renderTAWidget(currentInterval, currentSymbol);
-  renderDecisionGuide(currentInterval);
+  renderDecisionGuide(currentInterval, currentSymbol);
   renderTips(currentInterval);
 }
 
