@@ -102,6 +102,10 @@ function renderChart(interval, symbol) {
   container.innerHTML = '';
   tvWidgetInstance = null;
 
+  // Capture the symbol this chart replaced so that onSymbolChanged can ignore
+  // any spurious TradingView "revert-to-old-symbol" init events.
+  const prevSymbol = currentSymbol;
+
   const inner = document.createElement('div');
   inner.id = 'tv_nasdaq_' + Date.now();
   container.appendChild(inner);
@@ -153,6 +157,9 @@ function renderChart(interval, symbol) {
         try {
           const newSymbol = widget.activeChart().symbol();
           if (!newSymbol || newSymbol === currentSymbol) return;
+          // TradingView can fire onSymbolChanged during chart init with the
+          // previous chart's symbol (before the new one loads).  Ignore that.
+          if (newSymbol === prevSymbol) return;
           currentSymbol = newSymbol;
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
@@ -171,8 +178,6 @@ function renderTAWidget(interval, symbol) {
   const container = document.getElementById('ta-widget-container');
   container.innerHTML = '';
 
-  // Use an iframe pointing to TradingView's public embed page so each call
-  // loads a completely fresh widget for the selected symbol and timeframe.
   const config = {
     interval: taInterval,
     width: '100%',
@@ -185,11 +190,34 @@ function renderTAWidget(interval, symbol) {
     colorTheme: 'dark',
   };
 
-  // The publicly-accessible TradingView embed page for the TA widget.
-  // Config is passed as the URL fragment (hash) exactly as TradingView documents.
+  // Use iframe.srcdoc to inject a fresh HTML document containing TradingView's
+  // official script-based embed code on every call.  The srcdoc is different
+  // each time (new symbol/interval), so the browser always executes the script
+  // fresh — bypassing the caching that froze the original script-injection approach.
+  // This avoids any reliance on an external embed URL that might ignore the config.
+  //
+  // Note: TradingView's embed script reads the JSON config from the script element's
+  // textContent via DOM (e.g. querySelectorAll), NOT from browser script execution,
+  // so placing JSON between the <script src=...> tags is intentional and is the
+  // pattern documented by TradingView for all their embed widgets.
+  const srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>html,body{margin:0;padding:0;background:transparent;height:100%}</style>
+</head>
+<body>
+  <div class="tradingview-widget-container" style="height:100%">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript"
+      src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js"
+      async>${JSON.stringify(config)}<\/script>
+  </div>
+</body>
+</html>`;
+
   const iframe = document.createElement('iframe');
-  iframe.src = 'https://www.tradingview.com/embed-widget/technical-analysis/?locale=es#'
-    + encodeURIComponent(JSON.stringify(config));
+  iframe.srcdoc = srcdoc;
   iframe.style.cssText = 'display:block;width:100%;height:400px;border:none;';
   iframe.setAttribute('scrolling', 'no');
   iframe.setAttribute('allowtransparency', 'true');
