@@ -167,10 +167,8 @@ function renderTAWidget(interval, symbol) {
   const container = document.getElementById('ta-widget-container');
   container.innerHTML = '';
 
-  // Use an iframe so each call loads a completely fresh widget instance for
-  // the selected symbol and timeframe. The script-tag approach is NOT used
-  // here because browsers cache same-src scripts and never re-execute them,
-  // which caused the widget to stay frozen on the initial NQ1!/5min values.
+  // Use an iframe pointing to TradingView's public embed page so each call
+  // loads a completely fresh widget for the selected symbol and timeframe.
   const config = {
     interval: taInterval,
     width: '100%',
@@ -183,8 +181,10 @@ function renderTAWidget(interval, symbol) {
     colorTheme: 'dark',
   };
 
+  // The publicly-accessible TradingView embed page for the TA widget.
+  // Config is passed as the URL fragment (hash) exactly as TradingView documents.
   const iframe = document.createElement('iframe');
-  iframe.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.html?locale=es#'
+  iframe.src = 'https://www.tradingview.com/embed-widget/technical-analysis/?locale=es#'
     + encodeURIComponent(JSON.stringify(config));
   iframe.style.cssText = 'display:block;width:100%;height:400px;border:none;';
   iframe.setAttribute('scrolling', 'no');
