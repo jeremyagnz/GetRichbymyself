@@ -1,107 +1,77 @@
 'use strict';
 
-// ─── Timeframe analysis data ──────────────────────────────────────────────────
+// ─── Interval maps ────────────────────────────────────────────────────────────
+// Chart widget uses: '5','15','30','60','240','D'
+// TA widget uses:    '5m','15m','30m','1h','4h','1D'
+const TA_INTERVAL_MAP = {
+  '5':   '5m',
+  '15':  '15m',
+  '30':  '30m',
+  '60':  '1h',
+  '240': '4h',
+  'D':   '1D',
+};
 
-const TF_DATA = {
+const TF_LABELS = {
+  '5': '5 min', '15': '15 min', '30': '30 min',
+  '60': '1 hora', '240': '4 horas', 'D': '1 día',
+};
+
+// ─── Decision guide per timeframe ────────────────────────────────────────────
+// Tells the user exactly how to act based on what the live TA widget shows.
+
+const DECISION_GUIDE = {
   '5': {
-    label: '5 minutos',
-    role: '⚡ Ejecución precisa de entrada/salida',
-    description: 'El gráfico de 5 min es tu herramienta de <strong>timing exacto</strong>. Úsalo únicamente para confirmar la entrada una vez que el bias direccional ya fue definido en marcos superiores (30 min / 1 h).',
-    signals: [
-      { icon: '🟢', text: 'Busca <strong>ruptura de estructura (BOS)</strong> en dirección del trend del 30 min. Una vela de cuerpo limpio que cierra por encima/abajo del último swing es señal de entrada.' },
-      { icon: '📌', text: 'Identifica <strong>zonas de liquidez</strong> (máximos/mínimos anteriores del día). El precio suele barrer esa liquidez antes de moverse a tu target.' },
-      { icon: '⏱️', text: 'Sesión relevante: <strong>09:30–11:30 ET</strong> (apertura NY) y <strong>14:00–15:30 ET</strong> (cierre NY). Evita trades en horario de almuerzo (12–14 ET) por bajo volumen.' },
-      { icon: '🚫', text: 'No operes contra el trend del 1 hora. Si el 1H es bajista, solo busca shorts en el 5 min.' },
-    ],
-    decision: {
-      long: 'LONG si: precio hace BOS alcista en 5 min + 30 min en uptrend + volumen creciente + vela de reversión sobre nivel clave.',
-      short: 'SHORT si: precio hace BOS bajista en 5 min + 30 min en downtrend + rechazo de resistencia + menor volumen en rebote.',
-      avoid: 'EVITAR: Rangos laterales sin dirección, noticias de alto impacto activas (FOMC, CPI), spreads elevados pre-apertura.',
-    },
+    strong_buy:  'El NQ tiene <strong>impulso alcista fuerte</strong> en 5 min. Busca una vela de retroceso a EMA o soporte y entra LONG con stop −$300 y target +$400. Confirma que el 30 min también sea alcista.',
+    buy:         'Momentum positivo en 5 min. Espera un pullback limpio (1-2 velas) a nivel de soporte o EMA antes de entrar LONG. No persigas la vela.',
+    neutral:     'Rango sin dirección. <strong>No hay setup en este momento.</strong> Espera a que el precio rompa el rango (BOS) con volumen antes de entrar. Paciencia.',
+    sell:        'Presión bajista en 5 min. Busca rebote a resistencia o EMA para entrar SHORT con stop +$300 y target −$400. Confirma que el 30 min sea bajista.',
+    strong_sell: 'El NQ tiene <strong>impulso bajista fuerte</strong> en 5 min. Entra SHORT en el primer rebote a EMA o resistencia. Stop ajustado sobre el último swing.',
+    avoid:       '⏱️ Sesiones activas: 09:30–11:30 ET y 14:00–15:30 ET. Evita operar fuera de esas ventanas y en noticias de alto impacto.',
   },
   '15': {
-    label: '15 minutos',
-    role: '📐 Confirmación de setup y entrada refinada',
-    description: 'El 15 min balancea velocidad con contexto. Ideal para ver <strong>patrones de continuación</strong> (flags, triángulos, pullbacks a EMA) que el 5 min fragmenta demasiado.',
-    signals: [
-      { icon: '📈', text: '<strong>EMA 9 y EMA 21</strong>: cuando la 9 cruza la 21 con volumen confirma cambio de momentum. Entrada en el primer pullback a la EMA 9.' },
-      { icon: '🏔️', text: '<strong>Máximos y mínimos del día anterior (PDH/PDL)</strong>: son imanes de precio. Operando el rechazo o la ruptura confirmada de estos niveles ofrece setups de alta probabilidad.' },
-      { icon: '🕯️', text: 'Patrones de velas de reversión (engulfing, pin bar, inside bar) sobre niveles de soporte/resistencia + confluencia con EMA = setup válido para tu sistema.' },
-      { icon: '📊', text: 'Verifica que el <strong>RSI (14)</strong> no esté en sobrecompra (>70) para longs ni en sobreventa (<30) para shorts al momento de entrar.' },
-    ],
-    decision: {
-      long: 'LONG si: pullback a EMA 21 en uptrend + vela de reversión + RSI entre 40-60 + nivel de soporte clave cercano.',
-      short: 'SHORT si: rebote a EMA 21 en downtrend + vela bajista de continuación + RSI entre 40-60 + resistencia clave.',
-      avoid: 'EVITAR: Cuando RSI supera 75 o cae bajo 25 (extensión extrema). Primeros 5 min de apertura NY.',
-    },
+    strong_buy:  '<strong>Setup alcista sólido en 15 min.</strong> Verifica RSI entre 50–65 (no sobrecomprado). Entra LONG en pullback a EMA 9 o EMA 21. Stop bajo el último mínimo.',
+    buy:         'Momentum comprador en 15 min. Busca un inside bar o pin bar alcista sobre soporte/EMA para activar tu entrada LONG con R/R 1.33.',
+    neutral:     'Sin señal clara. Espera que el RSI 14 salga del rango 40–60 con momentum. Sin confirmación, sin trade.',
+    sell:        'Presión bajista en 15 min. Entra SHORT en rebote a EMA 9/21 con vela de rechazo. RSI debe estar bajo 50 y sin divergencia positiva.',
+    strong_sell: '<strong>Setup bajista sólido.</strong> Entra SHORT agresivo en el primer rebote. Confirma volumen descendente en el rebote y cierre bajo EMA.',
+    avoid:       '📊 Evita entrar cuando RSI > 75 o < 25. Primeros 5 min de apertura NY son trampa.',
   },
   '30': {
-    label: '30 minutos',
-    role: '🗺️ Definición de bias y zonas de oferta/demanda',
-    description: 'El 30 min es el marco ideal para determinar el <strong>bias del día</strong> (alcista / bajista / rango). Las zonas de oferta y demanda en este timeframe ofrecen niveles con gran ratio de éxito para tu sistema.',
-    signals: [
-      { icon: '📦', text: '<strong>Zonas de demanda</strong> (para longs): áreas donde el precio dejó velas de impulso alcista sin pullback. Son zonas donde los institucionales compraron.' },
-      { icon: '📦', text: '<strong>Zonas de oferta</strong> (para shorts): áreas donde el precio dejó velas de impulso bajista sin rebote. Son zonas donde los institucionales vendieron.' },
-      { icon: '🔄', text: '<strong>CHoCH (Change of Character)</strong>: cuando el precio rompe la estructura contraria al trend previo. Señal de cambio de tendencia y oportunidad de alta probabilidad.' },
-      { icon: '⚖️', text: 'Si el 30 min forma <strong>rango lateral</strong> (no hay BOS claro), espera a que el precio toque los extremos del rango y opera el rechazo con stop ajustado.' },
-    ],
-    decision: {
-      long: 'LONG si: precio llega a zona de demanda de 30 min + CHoCH o BOS alcista en 5/15 min + sesión activa de NY o Londres.',
-      short: 'SHORT si: precio llega a zona de oferta de 30 min + CHoCH o BOS bajista en 5/15 min + divergencia bajista en RSI.',
-      avoid: 'EVITAR: Trading en medio de rango sin test de extremos. Días con noticias macro antes de las 10:00 ET.',
-    },
+    strong_buy:  '<strong>Sesgo alcista dominante en 30 min.</strong> Identifica la zona de demanda más cercana. Entra LONG cuando el precio retorne a esa zona con confirmación en 5/15 min.',
+    buy:         'Bias alcista. Espera que el precio llegue a una zona de demanda o pullback al nivel de apertura. Entrada en confluencia con nivel clave.',
+    neutral:     'Rango institucional. Identifica los extremos del rango. Opera el RECHAZO de extremos: long en soporte inferior, short en resistencia superior.',
+    sell:        'Bias bajista. Espera retroceso a zona de oferta (último impulso bajista) para entrar SHORT. Confirma CHoCH o BOS bajista en 5 min.',
+    strong_sell: '<strong>Oferta dominante.</strong> Las zonas de oferta son las mejores entradas SHORT del día. Espera el retesteo de la zona y entra con stop sobre el OB.',
+    avoid:       '⚠️ No operes en medio de rango. Espera siempre test de extremos antes de entrar.',
   },
   '60': {
-    label: '1 hora',
-    role: '🧭 Tendencia intradiaria y niveles clave',
-    description: 'El 1H define la <strong>tendencia intradiaria</strong> dominante. Es el marco de referencia principal para filtrar todos tus trades del día. Solo opera en la dirección del trend del 1H.',
-    signals: [
-      { icon: '📉', text: '<strong>Estructura de mercado</strong>: serie de HH/HL (higher highs / higher lows) = uptrend. Serie de LH/LL = downtrend. Opera solo en la dirección de la estructura.' },
-      { icon: '📊', text: '<strong>VWAP (Volume Weighted Average Price)</strong>: precio sobre VWAP = presión compradora. Bajo VWAP = presión vendedora. Usar como filtro de sesgo.' },
-      { icon: '🎯', text: '<strong>Fibonacci retracement 50%-61.8%</strong>: tras un impulso en 1H, el retroceso a esta zona es la entrada de mayor probabilidad con stop bajo el 78.6%.' },
-      { icon: '🕐', text: 'Los <strong>niveles horarios en punto exacto</strong> (09:00, 10:00, 14:00, 15:00 ET) frecuentemente coinciden con reversiones o aceleraciones de precio en NASDAQ.' },
-    ],
-    decision: {
-      long: 'LONG si: 1H en uptrend (HH/HL) + precio retrocede a 50-61.8% Fib o VWAP + señal de entrada en 15/30 min.',
-      short: 'SHORT si: 1H en downtrend (LH/LL) + rebote a 50-61.8% Fib o VWAP + señal de entrada en 15/30 min.',
-      avoid: 'EVITAR: Cuando el precio está en medio del rango del 1H sin estructura clara. Primeras 2 velas del día (apertura caótica).',
-    },
+    strong_buy:  '<strong>Tendencia alcista intradiaria confirmada.</strong> SOLO busca longs hoy. Usa VWAP como soporte dinámico de entrada. Fib 50-61.8% del último impulso = zona ideal.',
+    buy:         'Momentum comprador en 1H. El sesgo del día es alcista. Cada pullback es oportunidad LONG. Confirma en 15/30 min.',
+    neutral:     'Sin tendencia clara en 1H. Día de rango. Reduce tamaño de posición o espera claridad. Operar rangos requiere disciplina máxima.',
+    sell:        'Sesgo bajista intradiario. Solo busca shorts hoy. VWAP es resistencia dinámica. Cada rebote a VWAP es oportunidad SHORT.',
+    strong_sell: '<strong>Tendencia bajista confirmada en 1H.</strong> SOLO busca shorts. Usa Fib 50-61.8% del rebote + rechazo de VWAP para entrar SHORT.',
+    avoid:       '🕐 Niveles clave en horas redondas (9, 10, 14, 15 ET). Cuidado con reversiones en esos momentos.',
   },
   '240': {
-    label: '4 horas',
-    role: '🌐 Tendencia multiday y zonas institucionales',
-    description: 'El 4H muestra el <strong>contexto de varios días</strong>. Las zonas en este marco tienen el mayor peso institucional. Úsalo para seleccionar solo los días en que el sesgo es favorable.',
-    signals: [
-      { icon: '🏛️', text: '<strong>Order Blocks institucionales</strong>: busca la última vela bajista antes de un impulso alcista (bullish OB) o la última vela alcista antes de un impulso bajista (bearish OB). Son zonas de alta probabilidad.' },
-      { icon: '📈', text: '<strong>EMA 50 y EMA 200 en 4H</strong>: si el precio está sobre ambas EMAs = macro alcista. Si está bajo ambas = macro bajista. Si está entre las dos = rango institucional.' },
-      { icon: '📅', text: 'Semanas de <strong>datos macro importantes</strong> (FOMC, NFP, CPI): el 4H suele mostrar acumulación antes del evento y expansión después. Evita posiciones overnight en esas semanas.' },
-      { icon: '🔢', text: '<strong>Niveles psicológicos redondos</strong> (18000, 19000, 20000, 21000 etc.): actúan como imanes y resistencias/soportes significativos en el 4H.' },
-    ],
-    decision: {
-      long: 'LONG si: 4H sobre EMA 50 + precio retrocede a Bullish OB sin romperlo + sesión NY activa + RR ≥ 1.33.',
-      short: 'SHORT si: 4H bajo EMA 50 + precio rebota a Bearish OB + divergencia en MACD 4H + volumen descendente en rebote.',
-      avoid: 'EVITAR: Trading contra el Order Block del 4H. Semana de FOMC / NFP sin sesgo claro post-noticia.',
-    },
+    strong_buy:  '<strong>Tendencia alcista multiday activa.</strong> Identifica el Bullish Order Block del 4H más cercano. Cuando el precio lo retestee, entra LONG con confirmación en 1H.',
+    buy:         'Contexto macro positivo. Días de corrección son oportunidades de compra. Espera que el precio llegue al OB del 4H y da señal en marcos menores.',
+    neutral:     'Rango institucional en 4H. El precio está entre zonas sin dirección macro. Reduce exposición y espera rompimiento de estructura clara.',
+    sell:        'Contexto bajista multiday. Busca Bearish Order Blocks del 4H como zonas de short. Confluencia con EMA 50 en 4H = setup de alta probabilidad.',
+    strong_sell: '<strong>Presión vendedora institucional.</strong> Los OBs bajistas del 4H son tus mejores zonas de entry SHORT. Confirma con 1H antes de entrar.',
+    avoid:       '📅 Semanas de FOMC/NFP: volatilidad extrema. No mantengas posiciones overnight sin hedge.',
   },
   'D': {
-    label: '1 día',
-    role: '🌎 Contexto macro y swing trading',
-    description: 'El diario define la <strong>narrativa macro del NASDAQ</strong>. Úsalo para saber si estás en un mercado alcista, bajista o en consolidación, y así filtrar si operar longs, shorts o mantenerte en cash.',
-    signals: [
-      { icon: '📅', text: '<strong>Estructura diaria</strong>: mientras el precio hace HH/HL en diario, el sesgo de largo plazo es alcista. Prioriza longs en marcos menores.' },
-      { icon: '📊', text: '<strong>EMA 20 diaria</strong>: actúa como dynamic support en uptrend. Un pullback a la EMA 20 con vela de reversión es uno de los setups con mayor winrate históricamente en NQ.' },
-      { icon: '🗓️', text: '<strong>Semanas clave</strong>: primera semana del mes (NFP), cada 6 semanas (FOMC), tercera semana de cada trimestre (OpEx de opciones). En esas semanas aumenta la volatilidad y los fakeouts.' },
-      { icon: '🔮', text: '<strong>Estacionalidad</strong>: Enero, Abril, Julio, Octubre suelen ser meses de expansión alcista. Septiembre-Octubre históricamente es el período de mayor volatilidad bajista.' },
-    ],
-    decision: {
-      long: 'SWING LONG si: precio sobre EMA 20 diaria + pullback a la EMA con vela de reversión + sectores tech líderes (AAPL, MSFT, NVDA) con momentum positivo.',
-      short: 'SWING SHORT si: precio bajo EMA 20 diaria + rebote a la EMA con rechazo + VIX en expansión + breadth de mercado deteriorado.',
-      avoid: 'EVITAR: Apalancamiento alto en swing trades durante meses de alta estacionalidad negativa. No dejes posiciones abiertas sin stop en semanas de FOMC.',
-    },
+    strong_buy:  '<strong>Mercado en tendencia alcista macro.</strong> El sesgo de la semana/mes es UP. Prioriza longs en TODOS los marcos. Pullbacks a EMA 20 diaria son tus mejores entradas.',
+    buy:         'Momentum semanal positivo. Busca días de retroceso con bajo volumen para entrar LONG. La EMA 20 diaria es soporte clave.',
+    neutral:     'Consolidación macro. El NQ está en rango semanal/mensual. Reduce tamaño y espera rompimiento direccional con volumen antes de comprometerte.',
+    sell:        'Presión bajista semanal. El sesgo macro es DOWN. Solo busca posiciones cortas en marcos menores. EMA 20 diaria = resistencia clave.',
+    strong_sell: '<strong>Tendencia bajista macro activa.</strong> El NQ está en distribución. Prioriza shorts. Cada rebote a EMA 20 diaria es venta institucional.',
+    avoid:       '🗓️ Semanas de OpEx (3ª semana del mes), FOMC, NFP: alta volatilidad y manipulación. Reduce apalancamiento.',
   },
 };
 
-// ─── TradingView widget loader ────────────────────────────────────────────────
+// ─── TradingView chart widget ─────────────────────────────────────────────────
 
 let tvScriptLoaded = false;
 
@@ -126,7 +96,7 @@ function renderChart(interval) {
     /* global TradingView */
     new TradingView.widget({
       width: '100%',
-      height: 500,
+      height: 520,
       symbol: 'CME_MINI:NQ1!',
       interval: interval,
       timezone: 'America/New_York',
@@ -146,34 +116,134 @@ function renderChart(interval) {
   });
 }
 
-// ─── Analysis panel renderer ─────────────────────────────────────────────────
+// ─── TradingView Technical Analysis widget (LIVE signals) ────────────────────
 
-function renderAnalysis(interval) {
-  const data = TF_DATA[interval];
-  if (!data) return;
+function renderTAWidget(interval) {
+  const taInterval = TA_INTERVAL_MAP[interval] || '1h';
+  const container = document.getElementById('ta-widget-container');
+  container.innerHTML = '';
 
-  document.getElementById('tf-analysis-title').textContent = `Análisis – ${data.label}`;
+  // The TA embed widget is self-contained: create its required structure then
+  // inject the config script. Each call creates a fresh instance.
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tradingview-widget-container';
 
-  const signalsHTML = data.signals.map(s =>
-    `<div class="tf-signal"><span class="tf-signal-icon">${s.icon}</span><span>${s.text}</span></div>`
-  ).join('');
+  const widgetDiv = document.createElement('div');
+  widgetDiv.className = 'tradingview-widget-container__widget';
+  wrapper.appendChild(widgetDiv);
 
-  document.getElementById('tf-analysis-body').innerHTML = `
-    <div class="tf-role">${data.role}</div>
-    <p class="tf-desc">${data.description}</p>
-    <div class="tf-signals">${signalsHTML}</div>
-  `;
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js';
+  script.async = true;
+  // Config must be inline text of the script tag (not src attribute)
+  script.textContent = JSON.stringify({
+    interval: taInterval,
+    width: '100%',
+    isTransparent: true,
+    height: 400,
+    symbol: 'CME_MINI:NQ1!',
+    showIntervalTabs: false,
+    displayMode: 'multiple',
+    locale: 'es',
+    colorTheme: 'dark',
+  });
 
-  document.getElementById('decision-box').innerHTML = `
-    <div class="dec-title">🧠 Decisión más probable – ${data.label}</div>
-    <div class="dec-row long"><span class="dec-icon">🟢</span><span>${data.decision.long}</span></div>
-    <div class="dec-row short"><span class="dec-icon">🔴</span><span>${data.decision.short}</span></div>
-    <div class="dec-row avoid"><span class="dec-icon">⚠️</span><span>${data.decision.avoid}</span></div>
+  wrapper.appendChild(script);
+  container.appendChild(wrapper);
+}
+
+// ─── Decision guide renderer ─────────────────────────────────────────────────
+
+function renderDecisionGuide(interval) {
+  const guide = DECISION_GUIDE[interval];
+  if (!guide) return;
+
+  const tfLabel = TF_LABELS[interval] || interval;
+  document.getElementById('live-signal-tf').textContent = tfLabel;
+  document.getElementById('tf-tips-label').textContent  = tfLabel;
+
+  document.getElementById('decision-guide').innerHTML = `
+    <div class="signal-legend">
+      <div class="sig-title">Lee la señal del widget y actúa:</div>
+      <div class="sig-row strong-buy">
+        <span class="sig-badge">⬆⬆ STRONG BUY</span>
+        <span>${guide.strong_buy}</span>
+      </div>
+      <div class="sig-row buy">
+        <span class="sig-badge">⬆ BUY</span>
+        <span>${guide.buy}</span>
+      </div>
+      <div class="sig-row neutral">
+        <span class="sig-badge">➡ NEUTRAL</span>
+        <span>${guide.neutral}</span>
+      </div>
+      <div class="sig-row sell">
+        <span class="sig-badge">⬇ SELL</span>
+        <span>${guide.sell}</span>
+      </div>
+      <div class="sig-row strong-sell">
+        <span class="sig-badge">⬇⬇ STRONG SELL</span>
+        <span>${guide.strong_sell}</span>
+      </div>
+      <div class="sig-row avoid-note">
+        <span>${guide.avoid}</span>
+      </div>
+    </div>
     <div class="dec-note">
-      Recuerda: solo toma el trade si el R/R es ≥ 1.33 ($400 target / $300 SL) y la señal aparece
-      en la dirección del marco superior.
+      Regla de oro: solo entra si R/R ≥ 1.33 ($400 target / $300 SL) y la señal del widget
+      coincide con la dirección del marco superior.
     </div>
   `;
+}
+
+// ─── Per-timeframe strategic tips (collapsible) ───────────────────────────────
+
+const TF_TIPS = {
+  '5': [
+    { icon: '🟢', text: 'Busca <strong>ruptura de estructura (BOS)</strong> en dirección del trend del 30 min. Una vela de cuerpo limpio que cierra por encima/abajo del último swing es señal de entrada.' },
+    { icon: '📌', text: 'Identifica <strong>zonas de liquidez</strong> (máximos/mínimos anteriores del día). El precio suele barrer esa liquidez antes de moverse a tu target.' },
+    { icon: '⏱️', text: 'Sesión relevante: <strong>09:30–11:30 ET</strong> (apertura NY) y <strong>14:00–15:30 ET</strong> (cierre NY). Evita trades en horario de almuerzo (12–14 ET) por bajo volumen.' },
+    { icon: '🚫', text: 'No operes contra el trend del 1 hora. Si el 1H es bajista, solo busca shorts en el 5 min.' },
+  ],
+  '15': [
+    { icon: '📈', text: '<strong>EMA 9 y EMA 21</strong>: cuando la 9 cruza la 21 con volumen confirma cambio de momentum. Entrada en el primer pullback a la EMA 9.' },
+    { icon: '🏔️', text: '<strong>Máximos y mínimos del día anterior (PDH/PDL)</strong>: son imanes de precio. Operando el rechazo o la ruptura confirmada de estos niveles ofrece setups de alta probabilidad.' },
+    { icon: '🕯️', text: 'Patrones de velas de reversión (engulfing, pin bar, inside bar) sobre niveles de soporte/resistencia + confluencia con EMA = setup válido.' },
+    { icon: '📊', text: 'Verifica que el <strong>RSI (14)</strong> no esté en sobrecompra (>70) para longs ni en sobreventa (<30) para shorts.' },
+  ],
+  '30': [
+    { icon: '📦', text: '<strong>Zonas de demanda</strong>: áreas donde el precio dejó velas de impulso alcista sin pullback = donde los institucionales compraron.' },
+    { icon: '📦', text: '<strong>Zonas de oferta</strong>: áreas donde el precio dejó velas de impulso bajista sin rebote = donde los institucionales vendieron.' },
+    { icon: '🔄', text: '<strong>CHoCH (Change of Character)</strong>: cuando el precio rompe la estructura contraria al trend previo. Señal de cambio de tendencia.' },
+    { icon: '⚖️', text: 'Si el 30 min forma <strong>rango lateral</strong>, opera el rechazo de los extremos del rango con stop ajustado.' },
+  ],
+  '60': [
+    { icon: '📉', text: '<strong>Estructura de mercado</strong>: HH/HL = uptrend. LH/LL = downtrend. Opera solo en la dirección de la estructura.' },
+    { icon: '📊', text: '<strong>VWAP</strong>: precio sobre VWAP = presión compradora. Bajo VWAP = presión vendedora. Úsalo como filtro de sesgo.' },
+    { icon: '🎯', text: '<strong>Fibonacci 50%-61.8%</strong>: tras un impulso en 1H, el retroceso a esta zona = entrada de mayor probabilidad.' },
+    { icon: '🕐', text: 'Los <strong>niveles horarios exactos</strong> (09:00, 10:00, 14:00, 15:00 ET) frecuentemente coinciden con reversiones en NQ.' },
+  ],
+  '240': [
+    { icon: '🏛️', text: '<strong>Order Blocks institucionales</strong>: última vela bajista antes de impulso alcista (bullish OB) o última vela alcista antes de impulso bajista (bearish OB).' },
+    { icon: '📈', text: '<strong>EMA 50 y EMA 200 en 4H</strong>: sobre ambas = macro alcista. Bajo ambas = macro bajista. Entre las dos = rango institucional.' },
+    { icon: '📅', text: 'Semanas de <strong>FOMC, NFP, CPI</strong>: acumulación antes del evento, expansión después. Evita overnight.' },
+    { icon: '🔢', text: '<strong>Niveles psicológicos redondos</strong> (18000, 19000, 20000, 21000): imanes de precio y zonas clave.' },
+  ],
+  'D': [
+    { icon: '📅', text: '<strong>Estructura diaria</strong>: HH/HL = sesgo alcista de largo plazo. Prioriza longs en marcos menores.' },
+    { icon: '📊', text: '<strong>EMA 20 diaria</strong>: dynamic support en uptrend. Pullback a EMA 20 con reversión = setup de altísimo winrate en NQ.' },
+    { icon: '🗓️', text: '<strong>Semanas clave</strong>: NFP (1ª del mes), FOMC (cada 6 semanas), OpEx (3ª semana del trimestre). Mayor volatilidad y fakeouts.' },
+    { icon: '🔮', text: '<strong>Estacionalidad</strong>: Enero, Abril, Julio, Octubre = expansión alcista. Septiembre-Octubre = mayor volatilidad bajista.' },
+  ],
+};
+
+function renderTips(interval) {
+  const tips = TF_TIPS[interval];
+  if (!tips) return;
+  document.getElementById('tf-analysis-body').innerHTML = tips.map(t =>
+    `<div class="tf-signal"><span class="tf-signal-icon">${t.icon}</span><span>${t.text}</span></div>`
+  ).join('');
 }
 
 // ─── Timeframe buttons ────────────────────────────────────────────────────────
@@ -184,14 +254,18 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const interval = btn.dataset.interval;
-    currentInterval = interval;
-    renderChart(interval);
-    renderAnalysis(interval);
+    currentInterval = btn.dataset.interval;
+    renderChart(currentInterval);
+    renderTAWidget(currentInterval);
+    renderDecisionGuide(currentInterval);
+    renderTips(currentInterval);
   });
 });
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 renderChart(currentInterval);
-renderAnalysis(currentInterval);
+renderTAWidget(currentInterval);
+renderDecisionGuide(currentInterval);
+renderTips(currentInterval);
+

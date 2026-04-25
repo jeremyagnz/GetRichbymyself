@@ -131,16 +131,19 @@
     <div id="tv-chart-container"></div>
   </div>
 
-  <!-- Analysis panel -->
-  <div class="nasdaq-analysis-grid">
-    <!-- Timeframe guide -->
-    <div class="card" id="tf-analysis-card">
-      <h2><span class="icon">🔍</span> <span id="tf-analysis-title">Análisis – 5 min</span></h2>
-      <div id="tf-analysis-body"></div>
+  <!-- Live signal row -->
+  <div class="nasdaq-live-grid">
+    <!-- TradingView Technical Analysis Widget – real live signal -->
+    <div class="card live-signal-card">
+      <h2><span class="icon">📡</span> Señal en Vivo – <span id="live-signal-tf">5 min</span></h2>
+      <p class="ta-hint">Indicadores en tiempo real de TradingView (osciladores + medias móviles)</p>
+      <div id="ta-widget-container"></div>
     </div>
-    <!-- System alignment -->
+
+    <!-- Decision guide -->
     <div class="card">
-      <h2><span class="icon">🎯</span> Alineación con tu Sistema</h2>
+      <h2><span class="icon">🧠</span> Cómo operar esta señal</h2>
+      <div id="decision-guide"></div>
       <div class="system-params">
         <div class="sp-row"><span>Target por trade</span><span class="sp-val positive">$400</span></div>
         <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative">$300</span></div>
@@ -148,9 +151,14 @@
         <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral">1.33</span></div>
         <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning">43 %</span></div>
       </div>
-      <div class="decision-box" id="decision-box"></div>
     </div>
   </div>
+
+  <!-- Collapsible per-timeframe strategic notes -->
+  <details class="card tf-tips-card" id="tf-tips-details">
+    <summary>📚 Guía estratégica – <span id="tf-tips-label">5 min</span> <span class="summary-hint">(clic para expandir)</span></summary>
+    <div id="tf-analysis-body" style="margin-top:14px;"></div>
+  </details>
 </div>
 
 <script src="calculator.js"></script>
