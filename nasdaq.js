@@ -204,6 +204,7 @@ function renderChart(interval, symbol) {
           taSymbol = newSymbol;
           document.getElementById('ta-symbol-input').value = newSymbol;
           document.getElementById('ta-symbol-error').hidden = true;
+          setActiveChip(newSymbol);
           renderTAWidget(taInterval, taSymbol);
           renderDecisionGuide(taInterval, taSymbol);
         } catch (_) { /* chart not ready yet */ }
@@ -411,17 +412,24 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
 
 // ─── TA-local symbol input (Señal en Vivo card) ───────────────────────────────
 
+function setActiveChip(symbol) {
+  document.querySelectorAll('.ta-sym-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.symbol === symbol);
+  });
+}
+
 function applyTASymbol() {
   const raw = document.getElementById('ta-symbol-input').value.trim().toUpperCase();
   const errEl = document.getElementById('ta-symbol-error');
   if (!raw) return;
   if (!SYMBOL_RE.test(raw)) {
-    errEl.textContent = '⚠️ Símbolo inválido. Usa letras, números y ":" para el exchange (ej: EURUSD, AAPL, BTCUSDT).';
+    errEl.textContent = '⚠️ Símbolo inválido. Usa letras, números y ":" para el exchange (ej: EURUSD, NQ1!, XAUUSD).';
     errEl.hidden = false;
     return;
   }
   errEl.hidden = true;
   taSymbol = raw;
+  setActiveChip(raw);
   renderTAWidget(taInterval, taSymbol);
   renderDecisionGuide(taInterval, taSymbol);
 }
@@ -430,6 +438,20 @@ document.getElementById('ta-symbol-apply-btn').addEventListener('click', applyTA
 
 document.getElementById('ta-symbol-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') applyTASymbol();
+});
+
+// ─── Quick-select symbol chips ────────────────────────────────────────────────
+
+document.querySelectorAll('.ta-sym-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const sym = chip.dataset.symbol;
+    document.getElementById('ta-symbol-input').value = sym;
+    document.getElementById('ta-symbol-error').hidden = true;
+    taSymbol = sym;
+    setActiveChip(sym);
+    renderTAWidget(taInterval, taSymbol);
+    renderDecisionGuide(taInterval, taSymbol);
+  });
 });
 
 // ─── TA-local timeframe buttons ───────────────────────────────────────────────
@@ -451,6 +473,7 @@ function renderAll() {
   taInterval = currentInterval;
   document.getElementById('ta-symbol-input').value = currentSymbol;
   document.getElementById('ta-symbol-error').hidden = true;
+  setActiveChip(currentSymbol);
   document.querySelectorAll('.ta-tf-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.interval === currentInterval);
   });

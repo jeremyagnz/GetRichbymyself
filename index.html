@@ -163,13 +163,23 @@
             id="ta-symbol-input"
             class="symbol-input"
             value="CME_MINI:NQ1!"
-            placeholder="Ej: EURUSD, AAPL, BTCUSDT…"
+            placeholder="Ej: EURUSD, NQ1!, AAPL, XAUUSD…"
             autocomplete="off"
             spellcheck="false"
           />
           <button id="ta-symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
         </div>
         <p id="ta-symbol-error" class="symbol-error" hidden></p>
+        <!-- Quick-select popular symbols -->
+        <div class="ta-symbol-chips">
+          <button class="ta-sym-chip" data-symbol="CME_MINI:NQ1!">NQ1! (Nasdaq)</button>
+          <button class="ta-sym-chip" data-symbol="EURUSD">EUR/USD</button>
+          <button class="ta-sym-chip" data-symbol="GBPUSD">GBP/USD</button>
+          <button class="ta-sym-chip" data-symbol="XAUUSD">Oro</button>
+          <button class="ta-sym-chip" data-symbol="BITSTAMP:BTCUSD">Bitcoin</button>
+          <button class="ta-sym-chip" data-symbol="NASDAQ:AAPL">AAPL</button>
+          <button class="ta-sym-chip" data-symbol="NASDAQ:SPY">SPY</button>
+        </div>
         <div class="tf-selector ta-tf-selector">
           <button class="ta-tf-btn active" data-interval="5">5 min</button>
           <button class="ta-tf-btn" data-interval="15">15 min</button>

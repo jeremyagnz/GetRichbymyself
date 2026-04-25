@@ -488,6 +488,37 @@ header p {
   color: #fff;
 }
 
+/* Quick-select symbol chips */
+.ta-symbol-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ta-sym-chip {
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: .73rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.ta-sym-chip:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+.ta-sym-chip.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-color: transparent;
+  color: #fff;
+}
+
 /* Signal legend (how-to-trade panel) */
 .signal-legend {
   display: grid;
