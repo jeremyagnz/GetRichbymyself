@@ -457,6 +457,37 @@ header p {
   margin-bottom: 10px;
 }
 
+/* TA-widget-local search bar + TF buttons */
+.ta-mini-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ta-tf-btn {
+  padding: 5px 13px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.ta-tf-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ta-tf-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-color: transparent;
+  color: #fff;
+}
+
 /* Signal legend (how-to-trade panel) */
 .signal-legend {
   display: grid;

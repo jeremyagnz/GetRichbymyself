@@ -21,6 +21,12 @@ const TF_LABELS = {
 let currentSymbol   = 'CME_MINI:NQ1!';
 let currentInterval = '5';
 
+// Symbol and interval shown in the "Señal en Vivo" TA widget.
+// Updated independently by the TA-local search bar/TF buttons, OR kept in
+// sync with the top-level controls when the user uses the main search bar.
+let taSymbol   = currentSymbol;
+let taInterval = currentInterval;
+
 // ─── Decision guide per timeframe ────────────────────────────────────────────
 // Tells the user exactly how to act based on what the live TA widget shows.
 
@@ -170,13 +176,18 @@ function renderChart(interval, symbol) {
         const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
         if (mapped === currentInterval) return;
         currentInterval = mapped;
-        // Highlight the matching TF button (if any)
+        // Highlight the matching top TF button (if any)
         document.querySelectorAll('.tf-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.interval === mapped);
         });
-        renderTAWidget(currentInterval, currentSymbol);
-        renderDecisionGuide(currentInterval, currentSymbol);
-        renderTips(currentInterval);
+        // Keep the TA-local controls in sync
+        taInterval = mapped;
+        document.querySelectorAll('.ta-tf-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.interval === mapped);
+        });
+        renderTAWidget(taInterval, taSymbol);
+        renderDecisionGuide(taInterval, taSymbol);
+        renderTips(taInterval);
       });
 
       // Sync TA widget when user searches a different symbol inside the chart
@@ -189,8 +200,12 @@ function renderChart(interval, symbol) {
           currentSymbol = newSymbol;
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
-          renderTAWidget(currentInterval, currentSymbol);
-          renderDecisionGuide(currentInterval, currentSymbol);
+          // Keep the TA-local controls in sync
+          taSymbol = newSymbol;
+          document.getElementById('ta-symbol-input').value = newSymbol;
+          document.getElementById('ta-symbol-error').hidden = true;
+          renderTAWidget(taInterval, taSymbol);
+          renderDecisionGuide(taInterval, taSymbol);
         } catch (_) { /* chart not ready yet */ }
       });
     });
@@ -394,11 +409,55 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
   });
 });
 
+// ─── TA-local symbol input (Señal en Vivo card) ───────────────────────────────
+
+function applyTASymbol() {
+  const raw = document.getElementById('ta-symbol-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('ta-symbol-error');
+  if (!raw) return;
+  if (!SYMBOL_RE.test(raw)) {
+    errEl.textContent = '⚠️ Símbolo inválido. Usa letras, números y ":" para el exchange (ej: EURUSD, AAPL, BTCUSDT).';
+    errEl.hidden = false;
+    return;
+  }
+  errEl.hidden = true;
+  taSymbol = raw;
+  renderTAWidget(taInterval, taSymbol);
+  renderDecisionGuide(taInterval, taSymbol);
+}
+
+document.getElementById('ta-symbol-apply-btn').addEventListener('click', applyTASymbol);
+
+document.getElementById('ta-symbol-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applyTASymbol();
+});
+
+// ─── TA-local timeframe buttons ───────────────────────────────────────────────
+
+document.querySelectorAll('.ta-tf-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ta-tf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    taInterval = btn.dataset.interval;
+    renderTAWidget(taInterval, taSymbol);
+    renderDecisionGuide(taInterval, taSymbol);
+    renderTips(taInterval);
+  });
+});
+
 function renderAll() {
+  // Keep the TA-local controls in sync with the top-level controls
+  taSymbol   = currentSymbol;
+  taInterval = currentInterval;
+  document.getElementById('ta-symbol-input').value = currentSymbol;
+  document.getElementById('ta-symbol-error').hidden = true;
+  document.querySelectorAll('.ta-tf-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.interval === currentInterval);
+  });
   renderChart(currentInterval, currentSymbol);
-  renderTAWidget(currentInterval, currentSymbol);
-  renderDecisionGuide(currentInterval, currentSymbol);
-  renderTips(currentInterval);
+  renderTAWidget(taInterval, taSymbol);
+  renderDecisionGuide(taInterval, taSymbol);
+  renderTips(taInterval);
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
