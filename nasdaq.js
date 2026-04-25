@@ -18,7 +18,7 @@ const TF_LABELS = {
 };
 
 // Default symbol and active interval
-let currentSymbol   = 'CME_MINI:NQ1!';
+let currentSymbol   = 'NDQ100';
 let currentInterval = '5';
 
 // ─── Decision guide per timeframe ────────────────────────────────────────────
