@@ -1,10 +1,28 @@
 # GetRichbymyself — Trading Performance Calculator
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/YOUR_NETLIFY_SITE_ID/deploy-status)](https://app.netlify.com/sites/YOUR_NETLIFY_SITE_NAME/deploys)
+
 Calculadora cuantitativa de trading para proyecciones de rentabilidad individuales y multi-cuenta (copy trading).
+
+## 🚀 Deploy en Netlify
+
+El sitio se despliega automáticamente en Netlify con cada push a la rama principal.
+
+### Pasos para conectar Netlify
+
+1. Ve a [netlify.com](https://netlify.com) e inicia sesión con tu cuenta de GitHub.
+2. Haz clic en **"Add new site" → "Import an existing project"**.
+3. Selecciona el repositorio `jeremyagnz/GetRichbymyself`.
+4. Netlify detectará automáticamente la configuración de `netlify.toml`.
+5. Haz clic en **"Deploy site"**.
+
+Netlify generará automáticamente **Deploy Previews** para cada Pull Request, con una URL única del tipo `https://deploy-preview-XX--YOUR_SITE.netlify.app`.
+
+Una vez desplegado, reemplaza `YOUR_NETLIFY_SITE_ID` y `YOUR_NETLIFY_SITE_NAME` en el badge de arriba con los valores de tu sitio en Netlify (**Site settings → General → Site details**).
 
 ## Uso
 
-Abre `index.html` en cualquier navegador moderno. No requiere servidor ni dependencias externas.
+Abre `index.html` en cualquier navegador moderno, o visita la URL de Netlify. No requiere servidor ni dependencias externas.
 
 ## Funcionalidades
 
