@@ -18,7 +18,7 @@ const TF_LABELS = {
 };
 
 // Default symbol and active interval
-let currentSymbol   = 'NDQ100';
+let currentSymbol   = 'NASDAQ:NDX';
 let currentInterval = '5';
 
 // ─── Decision guide per timeframe ────────────────────────────────────────────
@@ -237,7 +237,7 @@ function renderDecisionGuide(interval, symbol) {
   const tfLabel   = TF_LABELS[interval] || interval;
   const shortLabel = symbol
     ? (symbol.includes(':') ? symbol.split(':')[1] : symbol)
-    : 'NQ1!';
+    : 'NDX';
 
   document.getElementById('live-signal-tf').textContent     = tfLabel;
   document.getElementById('live-signal-symbol').textContent = shortLabel;
