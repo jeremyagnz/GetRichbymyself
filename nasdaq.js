@@ -207,6 +207,7 @@ function renderChart(interval, symbol) {
           setActiveChip(newSymbol);
           renderTAWidget(taInterval, taSymbol);
           renderDecisionGuide(taInterval, taSymbol);
+          renderTips(taInterval);
         } catch (_) { /* chart not ready yet */ }
       });
     });
@@ -266,8 +267,7 @@ function renderTAWidget(interval, symbol) {
   container.appendChild(iframe);
 
   // Show the symbol name in the card header
-  const shortLabel = symbol.includes(':') ? symbol.split(':')[1] : symbol;
-  document.getElementById('live-signal-symbol').textContent = shortLabel;
+  document.getElementById('live-signal-symbol').textContent = symBase(symbol) || symbol;
 }
 
 // ─── Decision guide renderer ─────────────────────────────────────────────────
@@ -276,43 +276,47 @@ function renderDecisionGuide(interval, symbol) {
   const guide = DECISION_GUIDE[interval];
   if (!guide) return;
 
-  const tfLabel   = TF_LABELS[interval] || interval;
-  const shortLabel = symbol
-    ? (symbol.includes(':') ? symbol.split(':')[1] : symbol)
-    : 'NQ1!';
+  const tfLabel    = TF_LABELS[interval] || interval;
+  const shortLabel = symBase(symbol) || 'NQ1!';
 
   document.getElementById('live-signal-tf').textContent     = tfLabel;
   document.getElementById('live-signal-symbol').textContent = shortLabel;
   document.getElementById('tf-tips-label').textContent      = tfLabel;
 
+  // Replace the hardcoded "NQ" placeholder in the guide text with the
+  // actual short symbol name so the advice always references the current asset.
   // All values (guide.*, TF_TIPS[].text) are static strings defined in this
   // file — they are never populated from user input or external sources.
   // innerHTML is used deliberately to render <strong> tags within those strings.
+  function sym(text) {
+    return text.replace(/\bNQ\b/g, shortLabel);
+  }
+
   document.getElementById('decision-guide').innerHTML = `
     <div class="signal-legend">
       <div class="sig-title">Lee la señal del widget y actúa:</div>
       <div class="sig-row strong-buy">
         <span class="sig-badge">⬆⬆ STRONG BUY</span>
-        <span>${guide.strong_buy}</span>
+        <span>${sym(guide.strong_buy)}</span>
       </div>
       <div class="sig-row buy">
         <span class="sig-badge">⬆ BUY</span>
-        <span>${guide.buy}</span>
+        <span>${sym(guide.buy)}</span>
       </div>
       <div class="sig-row neutral">
         <span class="sig-badge">➡ NEUTRAL</span>
-        <span>${guide.neutral}</span>
+        <span>${sym(guide.neutral)}</span>
       </div>
       <div class="sig-row sell">
         <span class="sig-badge">⬇ SELL</span>
-        <span>${guide.sell}</span>
+        <span>${sym(guide.sell)}</span>
       </div>
       <div class="sig-row strong-sell">
         <span class="sig-badge">⬇⬇ STRONG SELL</span>
-        <span>${guide.strong_sell}</span>
+        <span>${sym(guide.strong_sell)}</span>
       </div>
       <div class="sig-row avoid-note">
-        <span>${guide.avoid}</span>
+        <span>${sym(guide.avoid)}</span>
       </div>
     </div>
     <div class="dec-note">
@@ -366,9 +370,11 @@ const TF_TIPS = {
 function renderTips(interval) {
   const tips = TF_TIPS[interval];
   if (!tips) return;
+  const shortLabel = symBase(taSymbol) || 'NQ1!';
   // t.icon and t.text are static strings from this file, not external input.
+  // Replace the "NQ" placeholder with the actual current symbol name.
   document.getElementById('tf-analysis-body').innerHTML = tips.map(t =>
-    `<div class="tf-signal"><span class="tf-signal-icon">${t.icon}</span><span>${t.text}</span></div>`
+    `<div class="tf-signal"><span class="tf-signal-icon">${t.icon}</span><span>${t.text.replace(/\bNQ\b/g, shortLabel)}</span></div>`
   ).join('');
 }
 
@@ -432,6 +438,7 @@ function applyTASymbol() {
   setActiveChip(raw);
   renderTAWidget(taInterval, taSymbol);
   renderDecisionGuide(taInterval, taSymbol);
+  renderTips(taInterval);
 }
 
 document.getElementById('ta-symbol-apply-btn').addEventListener('click', applyTASymbol);
@@ -451,6 +458,7 @@ document.querySelectorAll('.ta-sym-chip').forEach(chip => {
     setActiveChip(sym);
     renderTAWidget(taInterval, taSymbol);
     renderDecisionGuide(taInterval, taSymbol);
+    renderTips(taInterval);
   });
 });
 
