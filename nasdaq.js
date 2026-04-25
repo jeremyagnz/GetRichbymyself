@@ -133,6 +133,8 @@ function renderChart(interval, symbol) {
     widget.onChartReady(() => {
       // Sync TA widget when user changes timeframe inside the chart toolbar
       widget.activeChart().onIntervalChanged().subscribe(null, (newInterval) => {
+        // Ignore events from a superseded chart instance
+        if (widget !== tvWidgetInstance) return;
         const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
         currentInterval = mapped;
         // Highlight the matching TF button (if any)
@@ -146,6 +148,8 @@ function renderChart(interval, symbol) {
 
       // Sync TA widget when user searches a different symbol inside the chart
       widget.activeChart().onSymbolChanged().subscribe(null, () => {
+        // Ignore events from a superseded chart instance
+        if (widget !== tvWidgetInstance) return;
         try {
           const newSymbol = widget.activeChart().symbol();
           if (!newSymbol || newSymbol === currentSymbol) return;
