@@ -111,6 +111,49 @@
 
 </div>
 
+<!-- ─── NASDAQ SECTION ──────────────────────────────────────────────────────── -->
+<div class="container" id="nasdaq-section">
+  <div class="section-title nasdaq-title">📊 NASDAQ – Análisis en Tiempo Real</div>
+  <p class="nasdaq-subtitle">Selecciona el temporalidad para ver el gráfico en vivo y el análisis alineado a tu sistema de trading.</p>
+
+  <!-- Timeframe selector -->
+  <div class="tf-selector">
+    <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
+    <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>
+    <button class="tf-btn"        data-interval="30"  data-label="30 min">30 min</button>
+    <button class="tf-btn"        data-interval="60"  data-label="1 hora">1 hora</button>
+    <button class="tf-btn"        data-interval="240" data-label="4 horas">4 horas</button>
+    <button class="tf-btn"        data-interval="D"   data-label="1 día">1 día</button>
+  </div>
+
+  <!-- TradingView Chart -->
+  <div class="chart-wrapper">
+    <div id="tv-chart-container"></div>
+  </div>
+
+  <!-- Analysis panel -->
+  <div class="nasdaq-analysis-grid">
+    <!-- Timeframe guide -->
+    <div class="card" id="tf-analysis-card">
+      <h2><span class="icon">🔍</span> <span id="tf-analysis-title">Análisis – 5 min</span></h2>
+      <div id="tf-analysis-body"></div>
+    </div>
+    <!-- System alignment -->
+    <div class="card">
+      <h2><span class="icon">🎯</span> Alineación con tu Sistema</h2>
+      <div class="system-params">
+        <div class="sp-row"><span>Target por trade</span><span class="sp-val positive">$400</span></div>
+        <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative">$300</span></div>
+        <div class="sp-row"><span>Win Rate objetivo</span><span class="sp-val neutral">67 %</span></div>
+        <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral">1.33</span></div>
+        <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning">43 %</span></div>
+      </div>
+      <div class="decision-box" id="decision-box"></div>
+    </div>
+  </div>
+</div>
+
 <script src="calculator.js"></script>
+<script src="nasdaq.js"></script>
 </body>
 </html>
