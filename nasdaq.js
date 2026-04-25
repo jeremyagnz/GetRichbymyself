@@ -326,7 +326,7 @@ function renderDecisionGuide(interval, symbol) {
 function buildDecNote() {
   const cp = window.calcParams;
   if (cp) {
-    const rr = (cp.target / cp.stopLoss).toFixed(2);
+    const rr = cp.rrRatio.toFixed(2);
     return `<div class="dec-note">
       Regla de oro: solo entra si R/R ≥ ${rr} ($${cp.target} target / $${cp.stopLoss} SL) y la señal del widget
       coincide con la dirección del marco superior.
@@ -506,6 +506,11 @@ function renderAll() {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 renderAll();
+
+// Refresh decision guide whenever the calculator updates the params
+document.addEventListener('calcParamsUpdated', () => {
+  renderDecisionGuide(taInterval, taSymbol);
+});
 
 // ─── Scroll-to-top button ────────────────────────────────────────────────────
 

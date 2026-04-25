@@ -380,14 +380,12 @@ document.getElementById('calcForm').addEventListener('submit', function (e) {
 
   // Defer rendering so the browser can paint the loading state first
   requestAnimationFrame(() => {
-    setTimeout(() => {
-      renderResults(p);
-      btn.disabled = false;
-      btnText.hidden = false;
-      btnSpinner.hidden = true;
-      // Update system params panel in the trading guide
-      updateSystemParams(p);
-    }, 60);
+    renderResults(p);
+    btn.disabled = false;
+    btnText.hidden = false;
+    btnSpinner.hidden = true;
+    // Update system params panel in the trading guide
+    updateSystemParams(p);
   });
 });
 
@@ -409,10 +407,10 @@ function updateSystemParams(p) {
   if (spRR)     spRR.textContent     = fmt(rrRatio);
   if (spBE)     spBE.textContent     = fmtPct(breakEven * 100, 0);
 
-  // Expose params globally so nasdaq.js can use them in the decision guide note
-  window.calcParams = p;
-  // If renderDecisionGuide is already available (nasdaq.js loaded), refresh it
-  if (typeof renderDecisionGuide === 'function' && typeof taInterval !== 'undefined') {
-    renderDecisionGuide(taInterval, taSymbol);
-  }
+  // Expose params globally so nasdaq.js can use them in the decision guide note.
+  // Store rrRatio directly to avoid recalculating it in nasdaq.js.
+  window.calcParams = { ...p, rrRatio };
+
+  // Notify nasdaq.js via a custom event so it can refresh the decision guide.
+  document.dispatchEvent(new CustomEvent('calcParamsUpdated'));
 }
