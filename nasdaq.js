@@ -88,9 +88,19 @@ function loadTVScript(callback) {
   document.head.appendChild(script);
 }
 
+// TradingView chart interval strings → our currentInterval keys
+const TV_INTERVAL_MAP = {
+  '1': '1', '3': '3', '5': '5', '15': '15', '30': '30',
+  '45': '45', '60': '60', '120': '120', '180': '180', '240': '240',
+  'D': 'D', '1D': 'D', 'W': 'W', '1W': 'W', 'M': 'M', '1M': 'M',
+};
+
+let tvWidgetInstance = null;
+
 function renderChart(interval, symbol) {
   const container = document.getElementById('tv-chart-container');
   container.innerHTML = '';
+  tvWidgetInstance = null;
 
   const inner = document.createElement('div');
   inner.id = 'tv_nasdaq_' + Date.now();
@@ -98,7 +108,7 @@ function renderChart(interval, symbol) {
 
   loadTVScript(() => {
     /* global TradingView */
-    new TradingView.widget({
+    const widget = new TradingView.widget({
       width: '100%',
       height: 520,
       symbol: symbol,
@@ -116,6 +126,35 @@ function renderChart(interval, symbol) {
       allow_symbol_change: true,
       studies: ['RSI@tv-basicstudies', 'VWAP@tv-basicstudies', 'MAExp@tv-basicstudies'],
       container_id: inner.id,
+    });
+
+    tvWidgetInstance = widget;
+
+    widget.onChartReady(() => {
+      // Sync TA widget when user changes timeframe inside the chart toolbar
+      widget.activeChart().onIntervalChanged().subscribe(null, (newInterval) => {
+        const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
+        currentInterval = mapped;
+        // Highlight the matching TF button (if any)
+        document.querySelectorAll('.tf-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.interval === mapped);
+        });
+        renderTAWidget(currentInterval, currentSymbol);
+        renderDecisionGuide(currentInterval);
+        renderTips(currentInterval);
+      });
+
+      // Sync TA widget when user searches a different symbol inside the chart
+      widget.activeChart().onSymbolChanged().subscribe(null, () => {
+        try {
+          const newSymbol = widget.activeChart().symbol();
+          if (!newSymbol || newSymbol === currentSymbol) return;
+          currentSymbol = newSymbol;
+          document.getElementById('symbol-input').value = newSymbol;
+          document.getElementById('symbol-error').hidden = true;
+          renderTAWidget(currentInterval, currentSymbol);
+        } catch (_) { /* chart not ready yet */ }
+      });
     });
   });
 }
