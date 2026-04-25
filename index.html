@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Performance Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header>
+  <h1>📈 Trading Performance Calculator</h1>
+  <p>Calcula proyecciones de rentabilidad individual y multi-cuenta (copy trading)</p>
+</header>
+
+<div class="container">
+
+  <!-- ─── INPUT FORM ──────────────────────────────────────────────────────── -->
+  <form id="calcForm">
+    <div class="grid-2">
+
+      <!-- Trading base -->
+      <div class="card">
+        <h2><span class="icon">⚙️</span> Parámetros de Trading</h2>
+
+        <div class="field">
+          <label for="target">Target por trade ($)</label>
+          <input type="number" id="target" value="400" min="0.01" step="any" required />
+        </div>
+        <div class="field">
+          <label for="stopLoss">Stop loss por trade ($)</label>
+          <input type="number" id="stopLoss" value="300" min="0.01" step="any" required />
+        </div>
+        <div class="field">
+          <label for="winRate">Win rate (%)</label>
+          <input type="number" id="winRate" value="67" min="1" max="99" step="0.1" required />
+        </div>
+        <div class="field">
+          <label for="tradesPerDay">Trades por día</label>
+          <input type="number" id="tradesPerDay" value="2" min="1" step="1" required />
+        </div>
+        <div class="field">
+          <label for="daysPerWeek">Días de trading por semana</label>
+          <input type="number" id="daysPerWeek" value="5" min="1" max="7" step="1" required />
+        </div>
+        <div class="field">
+          <label>Tiempo a proyectar</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="timeValue" value="5" min="1" step="1" required style="flex:1" />
+            <select id="timeUnit" style="width:140px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:.95rem;outline:none;">
+              <option value="weeks">Semanas</option>
+              <option value="months" selected>Meses</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capital & multi-account -->
+      <div class="card">
+        <h2><span class="icon">💰</span> Capital & Multi-Cuenta</h2>
+
+        <div class="field">
+          <label for="capitalPerAccount">Capital por cuenta ($)</label>
+          <input type="number" id="capitalPerAccount" value="10000" min="1" step="any" required />
+        </div>
+        <div class="field">
+          <label for="maxDrawdown">Drawdown máximo permitido por cuenta ($)</label>
+          <input type="number" id="maxDrawdown" value="2500" min="1" step="any" required />
+        </div>
+        <div class="field">
+          <label for="numAccounts">Número de cuentas conectadas</label>
+          <input type="number" id="numAccounts" value="5" min="1" step="1" required />
+        </div>
+        <div class="field">
+          <label for="copyFactor">Factor de copiado (1 = 1x réplica exacta)</label>
+          <input type="number" id="copyFactor" value="1" min="0.01" step="0.01" required />
+        </div>
+        <div class="field">
+          <label for="costsPerAccount">Costos/fees por trade, por cuenta ($)</label>
+          <input type="number" id="costsPerAccount" value="0" min="0" step="any" />
+        </div>
+
+        <button type="submit" class="btn">🚀 Calcular proyección</button>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- ─── RESULTS ─────────────────────────────────────────────────────────── -->
+  <div id="results">
+
+    <div class="section-title">1. Resumen Ejecutivo</div>
+    <div id="exec-summary"></div>
+
+    <div class="section-title">2. Resultado por Cuenta</div>
+    <div id="per-account-metrics"></div>
+
+    <div class="section-title">3. Resultado Consolidado</div>
+    <div id="consolidated-metrics"></div>
+
+    <div class="section-title">4–5. Escenarios: Base · Conservador · Optimista · Escalado</div>
+    <div id="scenarios-section"></div>
+
+    <div class="section-title">6. Análisis de Riesgos</div>
+    <div id="risk-section"></div>
+
+    <div class="section-title">7. Recomendaciones de Escalado</div>
+    <div id="recs-section"></div>
+
+  </div>
+
+</div>
+
+<script src="calculator.js"></script>
+</body>
+</html>
