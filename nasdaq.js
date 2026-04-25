@@ -102,6 +102,10 @@ function renderChart(interval, symbol) {
   container.innerHTML = '';
   tvWidgetInstance = null;
 
+  // Capture the symbol this chart replaced so that onSymbolChanged can ignore
+  // any spurious TradingView "revert-to-old-symbol" init events.
+  const prevSymbol = currentSymbol;
+
   const inner = document.createElement('div');
   inner.id = 'tv_nasdaq_' + Date.now();
   container.appendChild(inner);
@@ -133,6 +137,8 @@ function renderChart(interval, symbol) {
     widget.onChartReady(() => {
       // Sync TA widget when user changes timeframe inside the chart toolbar
       widget.activeChart().onIntervalChanged().subscribe(null, (newInterval) => {
+        // Ignore events from a superseded chart instance
+        if (widget !== tvWidgetInstance) return;
         const mapped = TV_INTERVAL_MAP[newInterval] || newInterval;
         currentInterval = mapped;
         // Highlight the matching TF button (if any)
@@ -140,19 +146,25 @@ function renderChart(interval, symbol) {
           b.classList.toggle('active', b.dataset.interval === mapped);
         });
         renderTAWidget(currentInterval, currentSymbol);
-        renderDecisionGuide(currentInterval);
+        renderDecisionGuide(currentInterval, currentSymbol);
         renderTips(currentInterval);
       });
 
       // Sync TA widget when user searches a different symbol inside the chart
       widget.activeChart().onSymbolChanged().subscribe(null, () => {
+        // Ignore events from a superseded chart instance
+        if (widget !== tvWidgetInstance) return;
         try {
           const newSymbol = widget.activeChart().symbol();
           if (!newSymbol || newSymbol === currentSymbol) return;
+          // TradingView can fire onSymbolChanged during chart init with the
+          // previous chart's symbol (before the new one loads).  Ignore that.
+          if (newSymbol === prevSymbol) return;
           currentSymbol = newSymbol;
           document.getElementById('symbol-input').value = newSymbol;
           document.getElementById('symbol-error').hidden = true;
           renderTAWidget(currentInterval, currentSymbol);
+          renderDecisionGuide(currentInterval, currentSymbol);
         } catch (_) { /* chart not ready yet */ }
       });
     });
@@ -166,24 +178,7 @@ function renderTAWidget(interval, symbol) {
   const container = document.getElementById('ta-widget-container');
   container.innerHTML = '';
 
-  // The TA embed widget is self-contained: create its required structure then
-  // inject the config script. Each call creates a fresh instance.
-  const wrapper = document.createElement('div');
-  wrapper.className = 'tradingview-widget-container';
-
-  const widgetDiv = document.createElement('div');
-  widgetDiv.className = 'tradingview-widget-container__widget';
-  wrapper.appendChild(widgetDiv);
-
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js';
-  script.async = true;
-  // TradingView embed widgets are configured via the *text content* of their
-  // own script tag (they call document.currentScript.textContent internally).
-  // JSON.stringify produces valid JSON which the widget parses as its config.
-  // This is the documented TradingView embed pattern and is NOT eval'd JS.
-  script.textContent = JSON.stringify({
+  const config = {
     interval: taInterval,
     width: '100%',
     isTransparent: true,
@@ -193,10 +188,40 @@ function renderTAWidget(interval, symbol) {
     displayMode: 'multiple',
     locale: 'es',
     colorTheme: 'dark',
-  });
+  };
 
-  wrapper.appendChild(script);
-  container.appendChild(wrapper);
+  // Use iframe.srcdoc to inject a fresh HTML document containing TradingView's
+  // official script-based embed code on every call.  The srcdoc is different
+  // each time (new symbol/interval), so the browser always executes the script
+  // fresh — bypassing the caching that froze the original script-injection approach.
+  // This avoids any reliance on an external embed URL that might ignore the config.
+  //
+  // Note: TradingView's embed script reads the JSON config from the script element's
+  // textContent via DOM (e.g. querySelectorAll), NOT from browser script execution,
+  // so placing JSON between the <script src=...> tags is intentional and is the
+  // pattern documented by TradingView for all their embed widgets.
+  const srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>html,body{margin:0;padding:0;background:transparent;height:100%}</style>
+</head>
+<body>
+  <div class="tradingview-widget-container" style="height:100%">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript"
+      src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js"
+      async>${JSON.stringify(config)}<\/script>
+  </div>
+</body>
+</html>`;
+
+  const iframe = document.createElement('iframe');
+  iframe.srcdoc = srcdoc;
+  iframe.style.cssText = 'display:block;width:100%;height:400px;border:none;';
+  iframe.setAttribute('scrolling', 'no');
+  iframe.setAttribute('allowtransparency', 'true');
+  container.appendChild(iframe);
 
   // Show the symbol name in the card header
   const shortLabel = symbol.includes(':') ? symbol.split(':')[1] : symbol;
@@ -205,13 +230,18 @@ function renderTAWidget(interval, symbol) {
 
 // ─── Decision guide renderer ─────────────────────────────────────────────────
 
-function renderDecisionGuide(interval) {
+function renderDecisionGuide(interval, symbol) {
   const guide = DECISION_GUIDE[interval];
   if (!guide) return;
 
-  const tfLabel = TF_LABELS[interval] || interval;
-  document.getElementById('live-signal-tf').textContent = tfLabel;
-  document.getElementById('tf-tips-label').textContent  = tfLabel;
+  const tfLabel   = TF_LABELS[interval] || interval;
+  const shortLabel = symbol
+    ? (symbol.includes(':') ? symbol.split(':')[1] : symbol)
+    : 'NQ1!';
+
+  document.getElementById('live-signal-tf').textContent     = tfLabel;
+  document.getElementById('live-signal-symbol').textContent = shortLabel;
+  document.getElementById('tf-tips-label').textContent      = tfLabel;
 
   // All values (guide.*, TF_TIPS[].text) are static strings defined in this
   // file — they are never populated from user input or external sources.
@@ -340,7 +370,7 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
 function renderAll() {
   renderChart(currentInterval, currentSymbol);
   renderTAWidget(currentInterval, currentSymbol);
-  renderDecisionGuide(currentInterval);
+  renderDecisionGuide(currentInterval, currentSymbol);
   renderTips(currentInterval);
 }
 
