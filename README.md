@@ -239,6 +239,124 @@ Para que un programador construya el bot, compártele:
 
 ---
 
+## 📱 Usar el bot en iPhone con MetaTrader 4/5 (Eightcap o ICMarkets)
+
+Esta sección explica cómo conectar tu cuenta de broker, monitorear las operaciones del bot y operar manualmente desde tu iPhone.
+
+---
+
+### 1. Descargar MetaTrader en el iPhone
+
+| Plataforma | Enlace App Store |
+|---|---|
+| **MetaTrader 4 (MT4)** | [Buscar "MetaTrader 4" en App Store](https://apps.apple.com/app/metatrader-4/id496212596) |
+| **MetaTrader 5 (MT5)** | [Buscar "MetaTrader 5" en App Store](https://apps.apple.com/app/metatrader-5/id413251709) |
+
+> **¿MT4 o MT5?**  
+> - **Eightcap** ofrece cuentas en MT4 y MT5 — usa la plataforma que abriste al registrarte.  
+> - **ICMarkets** (IC Markets) opera principalmente en MT4 y MT5 — elige la misma versión que tu cuenta.  
+> Si tienes dudas, consulta en el chat de soporte de tu broker cuál plataforma asignaron a tu cuenta.
+
+---
+
+### 2. Conectar tu cuenta Eightcap en MetaTrader iPhone
+
+1. Abre la app **MetaTrader 4** o **MetaTrader 5** en tu iPhone.
+2. Toca el ícono de **menú (☰)** → **"Manage Accounts"** → **"+"** (esquina superior derecha).
+3. Elige **"Login to an Existing Account"**.
+4. En el campo de búsqueda escribe **"Eightcap"** y selecciona el servidor correcto:
+   - Demo: `Eightcap-Demo` (para practicar sin dinero real)
+   - Real: `Eightcap-Live` (tu cuenta real)
+5. Ingresa tu **número de cuenta** y **contraseña de investor o trading** que recibiste al registrarte.
+6. Toca **"Sign In"**.
+
+> 📧 Si no tienes los datos de servidor/cuenta, encuéntralos en el correo de bienvenida de Eightcap o en **My Eightcap → My Accounts**.
+
+---
+
+### 3. Conectar tu cuenta ICMarkets en MetaTrader iPhone
+
+1. Abre **MetaTrader 4** o **MetaTrader 5**.
+2. Menú **☰ → Manage Accounts → + → Login to an Existing Account**.
+3. Busca **"ICMarkets"** y selecciona el servidor:
+   - Demo MT4: `ICMarketsSC-Demo`
+   - Real MT4: `ICMarketsSC-Live01` (o el número que te indiquen)
+   - Demo MT5: `ICMarketsSC-Demo-2`
+   - Real MT5: `ICMarketsSC-Live-5`
+4. Introduce tu número de cuenta y contraseña.
+5. Toca **"Sign In"**.
+
+> 📧 Revisa el correo de bienvenida de IC Markets o entra a **Client Area → My Accounts** para obtener los datos exactos de servidor.
+
+---
+
+### 4. Qué puedes hacer desde el iPhone (y qué no)
+
+| Acción | iPhone MT4/MT5 | Notas |
+|---|---|---|
+| Ver posiciones abiertas en tiempo real | ✅ | Sección "Trade" en la app |
+| Ver historial de operaciones | ✅ | Sección "History" |
+| Abrir/cerrar órdenes manualmente | ✅ | Tap en el par → New Order |
+| Modificar TP/SL de posiciones abiertas | ✅ | Mantén presionada la orden |
+| Ejecutar el bot automático (EA) | ❌ | Los Expert Advisors **no corren** en la app móvil — requieren MetaTrader Desktop (Windows/Mac) o un VPS |
+| Recibir notificaciones push del bot | ✅ | Configurar en MT Desktop: *Tools → Options → Notifications → MetaQuotes ID* |
+
+> ⚠️ **Importante:** el bot automatizado (EA o Pine Script) **debe correr en una computadora o servidor 24/7**. El iPhone sirve para **monitorear y gestionar** las posiciones, no para ejecutar el bot.
+
+---
+
+### 5. Cómo recibir alertas del bot en tu iPhone
+
+#### Opción A — Notificaciones push de MetaTrader Desktop al iPhone
+
+1. En la app iPhone, ve a **☰ → Settings → Messages** y copia tu **MetaQuotes ID**.
+2. En MetaTrader Desktop (tu PC / VPS): **Tools → Options → Notifications**.
+3. Activa **"Enable Push Notifications"** y pega el MetaQuotes ID.
+4. El bot (EA) puede enviar alertas con `SendNotification("texto")` en MQL4/MQL5.
+
+#### Opción B — Notificaciones Telegram (recomendado para el bot de TradingView)
+
+Si usas el servidor webhook (`bot/webhook-server.js`), configura Telegram en `.env`:
+
+```
+TELEGRAM_BOT_TOKEN=token_de_tu_bot
+TELEGRAM_CHAT_ID=tu_chat_id
+```
+
+Recibirás en tu iPhone (app Telegram) una notificación por cada orden abierta/cerrada.
+
+#### Opción C — Alertas de TradingView (solo TradingView + Eightcap)
+
+1. En TradingView (web o app móvil) crea la alerta del bot.
+2. En *Notifications* activa **"Mobile App"** y **"Email"**.
+3. Instala la app **TradingView** en tu iPhone para recibir las notificaciones en tiempo real.
+
+---
+
+### 6. Flujo completo recomendado para iPhone
+
+```
+PC / VPS (24/7)                          iPhone
+───────────────────────────────          ──────────────────────
+MetaTrader Desktop + EA activo    ──→   App MT4/MT5: monitorea trades
+  o                                     App Telegram: recibe alertas
+TradingView + bot Pine Script     ──→   App TradingView: notificaciones
+  + servidor webhook (Node.js)    ──→   App Telegram: log de órdenes
+```
+
+---
+
+### 7. Resumen de brokers compatibles
+
+| Broker | MT4 | MT5 | Integración TradingView | Regulación |
+|---|---|---|---|---|
+| **Eightcap** | ✅ | ✅ | ✅ Directo (panel TradingView) | ASIC, FCA, CySEC |
+| **ICMarkets** (IC Markets) | ✅ | ✅ | Vía webhook | ASIC, CySEC, FSA |
+
+> Para la integración directa con TradingView (sin servidor), **Eightcap es la opción más sencilla** ya que aparece en el panel de brokers de TradingView. ICMarkets requiere el servidor webhook.
+
+---
+
 ## 🤖 Bot incluido — Archivos en `/bot`
 
 El directorio `/bot` contiene el bot listo para usar:
