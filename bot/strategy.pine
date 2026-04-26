@@ -1,0 +1,205 @@
+// ══════════════════════════════════════════════════════════════════════════════
+// GetRichbymyself Bot — TradingView + Eightcap
+// Pine Script v5
+//
+// Descripción:
+//   Estrategia de trading automático basada en EMA + RSI con control de riesgo
+//   derivado de la calculadora GetRichbymyself.  Envía alertas JSON (webhook)
+//   compatibles con la integración directa de Eightcap en TradingView o con el
+//   servidor webhook incluido en este repositorio (webhook-server.js).
+//
+// Configuración rápida:
+//   1. Abre el editor Pine Script en TradingView.
+//   2. Pega este script y haz clic en "Add to chart".
+//   3. Ajusta los inputs de "Money Management" con los valores de tu calculadora.
+//   4. Ajusta el input "Valor del punto ($)" según tu instrumento (ver tabla abajo).
+//   5. Conecta tu cuenta Eightcap en el Trading Panel de TradingView.
+//   6. Crea una alerta: condición "[Bot] GetRichbymyself — order fills only"
+//      y activa el webhook (si usas servidor propio) o déjalo sin URL para
+//      ejecución directa a través de la integración de broker.
+//
+// Tabla de referencia — Valor del punto por instrumento:
+//   Instrumento  | Valor del punto ($) | Sugerencia lot_size
+//   -------------|---------------------|---------------------
+//   NAS100/US100 | 1.00                | 0.1 – 1 (mini/micro)
+//   EUR/USD      | 1.00 (por pip·lote) | 0.01 – 0.1
+//   XAU/USD      | 1.00                | 0.01 – 0.1
+//   GBP/USD      | 1.00 (por pip·lote) | 0.01 – 0.1
+//   BTC/USD      | 1.00                | 0.001 – 0.01
+//
+//   ⚠ Ajusta "Valor del punto ($)" y "Tamaño de lote fijo" de acuerdo a las
+//     especificaciones de contratos de Eightcap para tu instrumento.
+// ══════════════════════════════════════════════════════════════════════════════
+
+//@version=5
+strategy(
+     title             = "[Bot] GetRichbymyself — TradingView + Eightcap",
+     shorttitle        = "GRB Bot",
+     overlay           = true,
+     default_qty_type  = strategy.fixed,
+     default_qty_value = 1,
+     currency          = currency.USD,
+     initial_capital   = 10000,
+     pyramiding        = 0,
+     calc_on_order_fills = false,
+     process_orders_on_close = false)
+
+// ─── Grupos de inputs ─────────────────────────────────────────────────────────
+var string GRP_MM    = "💰 Money Management"
+var string GRP_INST  = "⚙️  Instrumento"
+var string GRP_SCHED = "🕐 Horario (UTC)"
+var string GRP_ENTRY = "📊 Estrategia de Entrada"
+
+// ─── Money Management ─────────────────────────────────────────────────────────
+i_tp_usd         = input.float(400,    "Target por trade ($)",    group=GRP_MM, minval=1,   step=10)
+i_sl_usd         = input.float(300,    "Stop loss por trade ($)", group=GRP_MM, minval=1,   step=10)
+i_max_trades_day = input.int(  2,      "Trades máx. por día",     group=GRP_MM, minval=1,   maxval=20)
+i_max_dd_usd     = input.float(2500,   "Drawdown máximo ($)",     group=GRP_MM, minval=100, step=100)
+i_commission     = input.float(0,      "Comisión por trade ($)",  group=GRP_MM, minval=0,   step=1)
+i_lot_mult       = input.float(1.0,    "Factor de copiado",       group=GRP_MM, minval=0.1, step=0.1)
+
+// ─── Instrumento ─────────────────────────────────────────────────────────────
+i_lot_size    = input.float(1.0,  "Tamaño de lote fijo",       group=GRP_INST, minval=0.001, step=0.01,
+                tooltip="Número de unidades / mini-lotes / micro-lotes a operar.\n" +
+                        "Ajusta según las especificaciones de contrato de Eightcap.")
+i_point_value = input.float(1.0,  "Valor del punto ($)",        group=GRP_INST, minval=0.0001, step=0.01,
+                tooltip="Valor en USD de 1 punto de movimiento por unidad de lote.\n" +
+                        "NAS100 = 1.0 | EUR/USD = 1.0 por pip | XAU/USD = 1.0")
+
+// ─── Horario (UTC) ────────────────────────────────────────────────────────────
+i_start_hour = input.int(8,     "Hora inicio (UTC)",  group=GRP_SCHED, minval=0,  maxval=23)
+i_end_hour   = input.int(17,    "Hora cierre (UTC)",  group=GRP_SCHED, minval=1,  maxval=24)
+i_trade_mon  = input.bool(true,  "Lunes",             group=GRP_SCHED)
+i_trade_tue  = input.bool(true,  "Martes",            group=GRP_SCHED)
+i_trade_wed  = input.bool(true,  "Miércoles",         group=GRP_SCHED)
+i_trade_thu  = input.bool(true,  "Jueves",            group=GRP_SCHED)
+i_trade_fri  = input.bool(true,  "Viernes",           group=GRP_SCHED)
+
+// ─── Estrategia de Entrada ────────────────────────────────────────────────────
+i_ema_fast = input.int(9,   "EMA Rápida (períodos)",       group=GRP_ENTRY, minval=2)
+i_ema_slow = input.int(21,  "EMA Lenta (períodos)",        group=GRP_ENTRY, minval=3)
+i_rsi_len  = input.int(14,  "RSI — Período",               group=GRP_ENTRY, minval=2)
+i_rsi_ob   = input.int(70,  "RSI — Sobrecompra (no Long)", group=GRP_ENTRY, minval=51, maxval=100)
+i_rsi_os   = input.int(30,  "RSI — Sobreventa (no Short)", group=GRP_ENTRY, minval=1,  maxval=49)
+i_use_long  = input.bool(true, "Operar Long",              group=GRP_ENTRY)
+i_use_short = input.bool(true, "Operar Short",             group=GRP_ENTRY)
+
+// ─── Filtro de sesión ─────────────────────────────────────────────────────────
+_day_ok = switch dayofweek
+    dayofweek.monday    => i_trade_mon
+    dayofweek.tuesday   => i_trade_tue
+    dayofweek.wednesday => i_trade_wed
+    dayofweek.thursday  => i_trade_thu
+    dayofweek.friday    => i_trade_fri
+    => false
+
+in_session = _day_ok and (hour >= i_start_hour) and (hour < i_end_hour)
+
+// ─── Indicadores ──────────────────────────────────────────────────────────────
+ema_fast = ta.ema(close, i_ema_fast)
+ema_slow = ta.ema(close, i_ema_slow)
+rsi      = ta.rsi(close, i_rsi_len)
+
+// ─── Contador de trades diarios ───────────────────────────────────────────────
+var int   trades_today   = 0
+var int   last_day       = na
+
+new_day = na(last_day) or dayofmonth != last_day
+if new_day
+    trades_today := 0
+    last_day     := dayofmonth
+
+// ─── Protección de drawdown ───────────────────────────────────────────────────
+// Compara el P&L neto corriente con el drawdown máximo permitido
+drawdown_ok = strategy.netprofit > -i_max_dd_usd
+
+// ─── Tamaño de lote ajustado por factor de copiado ───────────────────────────
+effective_lot = i_lot_size * i_lot_mult
+
+// ─── Señales de entrada ──────────────────────────────────────────────────────
+long_signal  = ta.crossover( ema_fast, ema_slow) and rsi < i_rsi_ob and rsi > 50
+short_signal = ta.crossunder(ema_fast, ema_slow) and rsi > i_rsi_os and rsi < 50
+
+can_trade = in_session and drawdown_ok and (trades_today < i_max_trades_day) and
+            strategy.position_size == 0
+
+// ─── Cálculo de TP / SL en precio ────────────────────────────────────────────
+// Movimiento de precio necesario para alcanzar el objetivo en USD:
+//   price_move = target_USD / (lot_size × point_value)
+// Se aplica la comisión al calcular el net target real.
+net_tp_usd = i_tp_usd - i_commission
+net_sl_usd = i_sl_usd + i_commission
+
+price_per_usd = 1.0 / (effective_lot * i_point_value)
+tp_dist       = net_tp_usd * price_per_usd
+sl_dist       = net_sl_usd * price_per_usd
+
+// ─── Ejecución de órdenes ─────────────────────────────────────────────────────
+if long_signal and can_trade and i_use_long
+    strategy.entry("Long", strategy.long, qty=effective_lot,
+                   comment="LONG")
+    strategy.exit("Exit Long", from_entry="Long",
+                  limit = close + tp_dist,
+                  stop  = close - sl_dist)
+    trades_today += 1
+
+if short_signal and can_trade and i_use_short
+    strategy.entry("Short", strategy.short, qty=effective_lot,
+                   comment="SHORT")
+    strategy.exit("Exit Short", from_entry="Short",
+                  limit = close - tp_dist,
+                  stop  = close + sl_dist)
+    trades_today += 1
+
+// ─── Detener el bot si se supera el drawdown máximo ──────────────────────────
+if not drawdown_ok and strategy.position_size != 0
+    strategy.close_all(comment="DRAWDOWN_LIMIT")
+
+// ─── Visualización de indicadores ────────────────────────────────────────────
+plot(ema_fast, "EMA Rápida", color=color.new(color.blue,   0), linewidth=1)
+plot(ema_slow, "EMA Lenta",  color=color.new(color.orange, 0), linewidth=2)
+
+// Fondo de sesión activa
+bgcolor(in_session  ? color.new(color.green, 95) : na, title="Sesión activa")
+bgcolor(not drawdown_ok ? color.new(color.red, 85)   : na, title="Drawdown alcanzado")
+
+// Señales visuales de entrada
+plotshape(long_signal  and can_trade and i_use_long,
+          title="Long",  style=shape.triangleup,
+          location=location.belowbar, color=color.new(color.lime, 0),
+          size=size.small, text="L")
+
+plotshape(short_signal and can_trade and i_use_short,
+          title="Short", style=shape.triangledown,
+          location=location.abovebar, color=color.new(color.red, 0),
+          size=size.small, text="S")
+
+// ─── Alertas (Webhook JSON) ──────────────────────────────────────────────────
+// Estas alertas se disparan cuando se ejecuta una orden.
+// El JSON es compatible con el servidor webhook-server.js incluido en /bot/.
+// Para Eightcap con integración directa de broker en TradingView, no es necesario
+// el webhook; las órdenes se envían automáticamente desde el Trading Panel.
+
+alertcondition(long_signal  and can_trade and i_use_long,
+               title   = "Señal LONG",
+               message = '{"action":"buy","symbol":"{{ticker}}","price":{{close}},"qty":' +
+                         str.tostring(effective_lot) +
+                         ',"tp_usd":' + str.tostring(i_tp_usd) +
+                         ',"sl_usd":' + str.tostring(i_sl_usd) +
+                         ',"comment":"GetRichbymyself_LONG"}')
+
+alertcondition(short_signal and can_trade and i_use_short,
+               title   = "Señal SHORT",
+               message = '{"action":"sell","symbol":"{{ticker}}","price":{{close}},"qty":' +
+                         str.tostring(effective_lot) +
+                         ',"tp_usd":' + str.tostring(i_tp_usd) +
+                         ',"sl_usd":' + str.tostring(i_sl_usd) +
+                         ',"comment":"GetRichbymyself_SHORT"}')
+
+alertcondition(strategy.position_size > 0 and ta.crossunder(close, strategy.position_avg_price - sl_dist),
+               title   = "Stop Loss Long alcanzado",
+               message = '{"action":"close","symbol":"{{ticker}}","price":{{close}},"reason":"SL","comment":"GetRichbymyself_SL"}')
+
+alertcondition(strategy.position_size < 0 and ta.crossover(close, strategy.position_avg_price + sl_dist),
+               title   = "Stop Loss Short alcanzado",
+               message = '{"action":"close","symbol":"{{ticker}}","price":{{close}},"reason":"SL","comment":"GetRichbymyself_SL"}')

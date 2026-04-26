@@ -59,30 +59,36 @@ Cuentas: 5 | Factor copiado: 1x | Costos: $0
 
 ---
 
-## 🤖 Crear un Bot Automático a partir de tu Plan Personalizado
+## 🤖 Bot Automático — TradingView + Eightcap
 
-Una vez que la calculadora haya generado tu plan óptimo, los parámetros resultantes sirven directamente como especificación técnica para programar un bot de trading. A continuación se detalla qué necesita el desarrollador y cómo llevarlo a las plataformas disponibles.
+El bot se genera y configura **directamente desde la página web**, sin necesidad de tocar código.
 
-### Parámetros que el bot necesita (salida de la calculadora)
+### Pasos rápidos
 
-| Parámetro | Variable en el bot | Descripción |
-|---|---|---|
-| **Target por trade** | `TAKE_PROFIT` | Puntos/pips o monto en USD de ganancia objetivo por operación |
-| **Stop loss por trade** | `STOP_LOSS` | Puntos/pips o monto en USD de pérdida máxima por operación |
-| **Win rate objetivo (%)** | _(referencia)_ | Usado para validar la estrategia de entrada; no se programa directamente |
-| **Trades por día** | `MAX_TRADES_PER_DAY` | Límite de operaciones diarias que el bot puede abrir |
-| **Días de trading / semana** | `TRADING_DAYS` | Días en que el bot opera (ej. lunes a viernes) |
-| **Capital por cuenta** | `ACCOUNT_BALANCE` | Balance de referencia para calcular el tamaño del lote |
-| **Drawdown máximo ($)** | `MAX_DRAWDOWN_USD` | Si la pérdida diaria/total alcanza este valor, el bot se detiene |
-| **Costos / comisiones** | `COMMISSION_PER_TRADE` | Deducción por operación (spread + comisión del broker) |
-| **Factor de copiado** | `LOT_MULTIPLIER` | Multiplicador de tamaño de posición para cuentas copiadas |
-| **Número de cuentas** | _(gestión externa)_ | Administrado desde la herramienta de copy trading |
+1. **Completa la Calculadora** (sección 01) con tu target, stop loss, win rate y capital.  
+   Los valores se sincronizan automáticamente al Bot.
+2. **Ir a la sección 04 — Bot Automático** de la misma página.
+3. **Elige el instrumento, timeframe y horario** (NAS100, EUR/USD, XAU/USD, etc.).
+4. Haz clic en **"🤖 Generar mi bot"**.
+5. Descarga el archivo **`GetRichbymyself_bot.pine`** o cópialo.
+6. Sigue las **5 instrucciones visuales** que aparecen en pantalla para cargarlo en TradingView y conectar Eightcap.
 
-> **Importante:** el desarrollador también necesita definir la **lógica de entrada** (señal de compra/venta). La calculadora optimiza el *money management*; la señal es responsabilidad de la estrategia técnica (indicadores, price action, etc.).
+> ⚠️ **Plan TradingView requerido:** mínimo **Essential** para alertas en tiempo real. Se recomienda **Plus** o superior para múltiples alertas simultáneas.
 
 ---
 
-### Opción A — MetaTrader 4 / MetaTrader 5 (MQL4 / MQL5)
+### Archivos del bot en `/bot`
+
+| Archivo | Descripción |
+|---|---|
+| `bot/strategy.pine` | Versión base del Pine Script v5 con valores predeterminados (referencia) |
+| `bot/webhook-server.js` | Servidor Node.js opcional para multi-cuenta / Telegram / logging avanzado |
+| `bot/package.json` | Dependencias del servidor webhook (`express`, `dotenv`) |
+| `bot/.env.example` | Plantilla de variables de entorno para el servidor webhook |
+
+> **Nota:** El archivo `bot.js` en la raíz del proyecto es el generador integrado en la página web. El directorio `/bot` contiene el servidor webhook opcional para flujos avanzados (multi-cuenta, Telegram, etc.).
+
+---
 
 #### Requisitos para el desarrollador
 
@@ -230,3 +236,258 @@ Para que un programador construya el bot, compártele:
 5. ✅ Timeframe (1m, 5m, 15m, 1H, etc.).
 6. ✅ Si deseas copy trading: número de cuentas y factor de copiado.
 7. ✅ Credenciales de API del broker (solo al desarrollador de confianza, nunca en código público).
+
+---
+
+## 📱 Usar el bot en iPhone con MetaTrader 4/5 (Eightcap o ICMarkets)
+
+Esta sección explica cómo conectar tu cuenta de broker, monitorear las operaciones del bot y operar manualmente desde tu iPhone.
+
+---
+
+### 1. Descargar MetaTrader en el iPhone
+
+| Plataforma | Enlace App Store |
+|---|---|
+| **MetaTrader 4 (MT4)** | [Buscar "MetaTrader 4" en App Store](https://apps.apple.com/app/metatrader-4/id496212596) |
+| **MetaTrader 5 (MT5)** | [Buscar "MetaTrader 5" en App Store](https://apps.apple.com/app/metatrader-5/id413251709) |
+
+> **¿MT4 o MT5?**  
+> - **Eightcap** ofrece cuentas en MT4 y MT5 — usa la plataforma que abriste al registrarte.  
+> - **ICMarkets** (IC Markets) opera principalmente en MT4 y MT5 — elige la misma versión que tu cuenta.  
+> Si tienes dudas, consulta en el chat de soporte de tu broker cuál plataforma asignaron a tu cuenta.
+
+---
+
+### 2. Conectar tu cuenta Eightcap en MetaTrader iPhone
+
+1. Abre la app **MetaTrader 4** o **MetaTrader 5** en tu iPhone.
+2. Toca el ícono de **menú (☰)** → **"Manage Accounts"** → **"+"** (esquina superior derecha).
+3. Elige **"Login to an Existing Account"**.
+4. En el campo de búsqueda escribe **"Eightcap"** y selecciona el servidor correcto:
+   - Demo: `Eightcap-Demo` (para practicar sin dinero real)
+   - Real: `Eightcap-Live` (tu cuenta real)
+5. Ingresa tu **número de cuenta** y **contraseña de investor o trading** que recibiste al registrarte.
+6. Toca **"Sign In"**.
+
+> 📧 Si no tienes los datos de servidor/cuenta, encuéntralos en el correo de bienvenida de Eightcap o en **My Eightcap → My Accounts**.
+
+---
+
+### 3. Conectar tu cuenta ICMarkets en MetaTrader iPhone
+
+1. Abre **MetaTrader 4** o **MetaTrader 5**.
+2. Menú **☰ → Manage Accounts → + → Login to an Existing Account**.
+3. Busca **"ICMarkets"** y selecciona el servidor:
+   - Demo MT4: `ICMarketsSC-Demo`
+   - Real MT4: `ICMarketsSC-Live01` (o el número que te indiquen)
+   - Demo MT5: `ICMarketsSC-Demo-2`
+   - Real MT5: `ICMarketsSC-Live-5`
+4. Introduce tu número de cuenta y contraseña.
+5. Toca **"Sign In"**.
+
+> 📧 Revisa el correo de bienvenida de IC Markets o entra a **Client Area → My Accounts** para obtener los datos exactos de servidor.
+
+---
+
+### 4. Qué puedes hacer desde el iPhone (y qué no)
+
+| Acción | iPhone MT4/MT5 | Notas |
+|---|---|---|
+| Ver posiciones abiertas en tiempo real | ✅ | Sección "Trade" en la app |
+| Ver historial de operaciones | ✅ | Sección "History" |
+| Abrir/cerrar órdenes manualmente | ✅ | Tap en el par → New Order |
+| Modificar TP/SL de posiciones abiertas | ✅ | Mantén presionada la orden |
+| Ejecutar el bot automático (EA) | ❌ | Los Expert Advisors **no corren** en la app móvil — requieren MetaTrader Desktop (Windows/Mac) o un VPS |
+| Recibir notificaciones push del bot | ✅ | Configurar en MT Desktop: *Tools → Options → Notifications → MetaQuotes ID* |
+
+> ⚠️ **Importante:** el bot automatizado (EA o Pine Script) **debe correr en una computadora o servidor 24/7**. El iPhone sirve para **monitorear y gestionar** las posiciones, no para ejecutar el bot.
+
+---
+
+### 5. Cómo recibir alertas del bot en tu iPhone
+
+#### Opción A — Notificaciones push de MetaTrader Desktop al iPhone
+
+1. En la app iPhone, ve a **☰ → Settings → Messages** y copia tu **MetaQuotes ID**.
+2. En MetaTrader Desktop (tu PC / VPS): **Tools → Options → Notifications**.
+3. Activa **"Enable Push Notifications"** y pega el MetaQuotes ID.
+4. El bot (EA) puede enviar alertas con `SendNotification("texto")` en MQL4/MQL5.
+
+#### Opción B — Notificaciones Telegram (recomendado para el bot de TradingView)
+
+Si usas el servidor webhook (`bot/webhook-server.js`), configura Telegram en `.env`:
+
+```
+TELEGRAM_BOT_TOKEN=token_de_tu_bot
+TELEGRAM_CHAT_ID=tu_chat_id
+```
+
+Recibirás en tu iPhone (app Telegram) una notificación por cada orden abierta/cerrada.
+
+#### Opción C — Alertas de TradingView (solo TradingView + Eightcap)
+
+1. En TradingView (web o app móvil) crea la alerta del bot.
+2. En *Notifications* activa **"Mobile App"** y **"Email"**.
+3. Instala la app **TradingView** en tu iPhone para recibir las notificaciones en tiempo real.
+
+---
+
+### 6. Flujo completo recomendado para iPhone
+
+```
+PC / VPS (24/7)                          iPhone
+───────────────────────────────          ──────────────────────
+MetaTrader Desktop + EA activo    ──→   App MT4/MT5: monitorea trades
+  o                                     App Telegram: recibe alertas
+TradingView + bot Pine Script     ──→   App TradingView: notificaciones
+  + servidor webhook (Node.js)    ──→   App Telegram: log de órdenes
+```
+
+---
+
+### 7. Resumen de brokers compatibles
+
+| Broker | MT4 | MT5 | Integración TradingView | Regulación |
+|---|---|---|---|---|
+| **Eightcap** | ✅ | ✅ | ✅ Directo (panel TradingView) | ASIC, FCA, CySEC |
+| **ICMarkets** (IC Markets) | ✅ | ✅ | Vía webhook | ASIC, CySEC, FSA |
+
+> Para la integración directa con TradingView (sin servidor), **Eightcap es la opción más sencilla** ya que aparece en el panel de brokers de TradingView. ICMarkets requiere el servidor webhook.
+
+---
+
+## 🤖 Bot incluido — Archivos en `/bot`
+
+El directorio `/bot` contiene el bot listo para usar:
+
+| Archivo | Descripción |
+|---|---|
+| `bot/strategy.pine` | Estrategia Pine Script v5 para TradingView (EMA + RSI con money management completo) |
+| `bot/webhook-server.js` | Servidor Node.js que recibe alertas de TradingView y las reenvía a Eightcap/MT5 |
+| `bot/package.json` | Dependencias del servidor webhook (`express`, `dotenv`) |
+| `bot/.env.example` | Plantilla de variables de entorno (copia a `.env` y completa los valores) |
+
+---
+
+### 🚀 Inicio rápido — TradingView + Eightcap (integración directa, sin servidor)
+
+> **Esta es la opción más sencilla.** No requiere desplegar ningún servidor.
+
+1. **Conectar Eightcap en TradingView**
+   - En TradingView, abre el *Trading Panel* (barra inferior).
+   - Busca **Eightcap** y haz clic en *Connect*.
+   - Inicia sesión con tus credenciales de Eightcap.
+
+2. **Agregar la estrategia**
+   - Abre el *Pine Script Editor* (botón en la barra inferior).
+   - Pega el contenido de `bot/strategy.pine` y haz clic en **Save + Add to chart**.
+
+3. **Configurar los inputs** (panel de configuración del script)
+
+   | Input | Valor recomendado (ajusta según tu calculadora) |
+   |---|---|
+   | Target por trade ($) | 400 |
+   | Stop loss por trade ($) | 300 |
+   | Trades máx. por día | 2 |
+   | Drawdown máximo ($) | 2500 |
+   | Comisión por trade ($) | 0 (ajusta según Eightcap) |
+   | Factor de copiado | 1.0 |
+   | Tamaño de lote fijo | 1.0 (ver tabla de instrumentos) |
+   | Valor del punto ($) | 1.0 para NAS100/US100 |
+   | Hora inicio/cierre (UTC) | 8 / 17 |
+
+4. **Crear alerta** para ejecución automática
+   - Haz clic en el ícono de alarma ⏰.
+   - Condición: `[Bot] GetRichbymyself — order fills only`.
+   - En *Notifications* → habilitar **"Create server-side alert"**.
+   - Si usas integración directa de broker, las órdenes se ejecutan sin webhook.
+
+5. **Paper trading primero** — corre la estrategia en modo demo antes de usar dinero real.
+
+> ⚠️ **Plan TradingView requerido:** mínimo **Essential** (para alertas en tiempo real y webhooks). Se recomienda **Plus** o superior si vas a tener múltiples alertas activas simultáneamente.
+
+---
+
+### 🖥️ Inicio rápido — Servidor Webhook (multi-cuenta / Telegram / logging)
+
+> Usa esta opción si quieres ejecutar en múltiples cuentas, recibir notificaciones por Telegram, o tener un log completo de todas las órdenes.
+
+#### Requisitos del servidor
+
+- **Node.js** ≥ 18
+- Un servidor con IP pública accesible desde internet (ej. VPS, Railway, Render, Fly.io, Heroku)
+- **Plan TradingView Essential o superior** (para webhooks)
+- Acceso a la API REST de MetaTrader 5 (ver opciones más abajo)
+
+#### Opciones para la API MT5 con Eightcap
+
+| Opción | Descripción | Costo |
+|---|---|---|
+| **MetaAPI** ([metaapi.cloud](https://metaapi.cloud)) | SaaS: conecta tu cuenta MT5 de Eightcap y expone una API REST. **Recomendado.** | Plan gratis disponible |
+| **EA Puente propio** | Expert Advisor en MT5 que levanta un servidor HTTP local | Gratuito (requiere MT5 siempre activo) |
+| **TradeLocker API** | Si Eightcap ofrece acceso a TradeLocker | Verificar con Eightcap |
+
+#### Pasos de instalación
+
+```bash
+# 1. Ir al directorio del bot
+cd bot
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Edita .env con tu editor:
+#   WEBHOOK_SECRET = token largo y aleatorio (genera con: openssl rand -hex 32)
+#   MT5_API_URL    = URL de tu API MT5 (ej. https://tu-instancia.metaapi.cloud)
+#   MT5_API_KEY    = clave de API de MetaAPI u otro proveedor
+
+# 4. Iniciar el servidor
+npm start
+```
+
+El servidor escuchará en `http://localhost:3000` (o el puerto configurado en `PORT`).
+
+#### URL del webhook para TradingView
+
+```
+https://tu-dominio.com/webhook?token=TU_WEBHOOK_SECRET
+```
+
+Pega esta URL en el campo **Webhook URL** al crear la alerta en TradingView.
+
+#### Notificaciones Telegram (opcional)
+
+Agrega en tu `.env`:
+```
+TELEGRAM_BOT_TOKEN=token_de_tu_bot_de_telegram
+TELEGRAM_CHAT_ID=tu_chat_id
+```
+
+Para obtener un bot de Telegram: habla con [@BotFather](https://t.me/BotFather) en Telegram.
+
+---
+
+### ⚠️ Tabla de Valor del Punto por instrumento (Eightcap)
+
+Ajusta el input **"Valor del punto ($)"** en el script según el instrumento:
+
+| Instrumento | Símbolo TV | Valor del punto | Lote mínimo Eightcap |
+|---|---|---|---|
+| NASDAQ 100 | `CAPITALCOM:US100` | 1.0 | 0.1 (mini) |
+| EUR/USD | `EIGHTCAP:EURUSD` | 1.0 por pip | 0.01 |
+| XAU/USD (Oro) | `EIGHTCAP:XAUUSD` | 1.0 | 0.01 |
+| GBP/USD | `EIGHTCAP:GBPUSD` | 1.0 por pip | 0.01 |
+| BTC/USD | `EIGHTCAP:BTCUSD` | 1.0 | 0.001 |
+
+> Verifica siempre las especificaciones de contrato en tu cuenta Eightcap antes de operar con dinero real.
+
+---
+
+### 🔐 Seguridad
+
+- **Nunca** subas el archivo `.env` a Git (ya está en `.gitignore`).
+- El `WEBHOOK_SECRET` protege el endpoint de alertas externas no autorizadas.
+- Las credenciales de la API de Eightcap/MT5 solo deben existir en el archivo `.env` del servidor, nunca en el código fuente.
