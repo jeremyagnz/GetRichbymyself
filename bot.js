@@ -68,21 +68,21 @@ strategy(
      process_orders_on_close = false)
 
 // ─── Grupos de inputs ─────────────────────────────────────────────────────────
-var string GRP_MM    = "\uD83D\uDCB0 Money Management"
-var string GRP_INST  = "\u2699\uFE0F  Instrumento"
-var string GRP_SCHED = "\uD83D\uDD50 Horario (UTC)"
-var string GRP_ENTRY = "\uD83D\uDCC8 Estrategia de Entrada"
+var string GRP_MM    = "💰 Money Management"
+var string GRP_INST  = "⚙️  Instrumento"
+var string GRP_SCHED = "🕐 Horario (UTC)"
+var string GRP_ENTRY = "📈 Estrategia de Entrada"
 
 // ─── Money Management ─────────────────────────────────────────────────────────
 i_tp_usd         = input.float(${c.tpUsd},        "Target por trade ($)",    group=GRP_MM, minval=1,   step=10)
 i_sl_usd         = input.float(${c.slUsd},        "Stop loss por trade ($)", group=GRP_MM, minval=1,   step=10)
-i_max_trades_day = input.int(  ${c.maxTradesDay}, "Trades max. por dia",     group=GRP_MM, minval=1,   maxval=20)
-i_max_dd_usd     = input.float(${c.maxDdUsd},     "Drawdown maximo ($)",     group=GRP_MM, minval=100, step=100)
-i_commission     = input.float(${c.commission},   "Comision por trade ($)",  group=GRP_MM, minval=0,   step=1)
-i_lot_mult       = input.float(${c.lotMult},      "Factor de copiado",       group=GRP_MM, minval=0.1, step=0.1)
+i_max_trades_day = input.int(  ${c.maxTradesDay}, "Trades máx. por día",     group=GRP_MM, minval=1,   maxval=20)
+i_max_dd_usd     = input.float(${c.maxDdUsd},     "Drawdown máximo ($)",     group=GRP_MM, minval=100, step=100)
+i_commission     = input.float(${c.commission},   "Comisión por trade ($)",  group=GRP_MM, minval=0,   step=1)
+i_lot_mult       = input.float(${c.lotMult},      "Multiplicador de posición", group=GRP_MM, minval=0.1, step=0.1)
 
 // ─── Instrumento ─────────────────────────────────────────────────────────────
-i_lot_size    = input.float(${c.lotSize},    "Tamano de lote fijo",  group=GRP_INST, minval=0.001, step=0.01)
+i_lot_size    = input.float(${c.lotSize},    "Tamaño de lote fijo",  group=GRP_INST, minval=0.001, step=0.01)
 i_point_value = input.float(${c.pointValue}, "Valor del punto ($)",  group=GRP_INST, minval=0.0001, step=0.01)
 
 // ─── Horario (UTC) ────────────────────────────────────────────────────────────
@@ -90,20 +90,20 @@ i_start_hour = input.int(${c.startHour}, "Hora inicio (UTC)", group=GRP_SCHED, m
 i_end_hour   = input.int(${c.endHour},   "Hora cierre (UTC)", group=GRP_SCHED, minval=1, maxval=24)
 i_trade_mon  = input.bool(${bool(c.mon)}, "Lunes",     group=GRP_SCHED)
 i_trade_tue  = input.bool(${bool(c.tue)}, "Martes",    group=GRP_SCHED)
-i_trade_wed  = input.bool(${bool(c.wed)}, "Miercoles", group=GRP_SCHED)
+i_trade_wed  = input.bool(${bool(c.wed)}, "Miércoles", group=GRP_SCHED)
 i_trade_thu  = input.bool(${bool(c.thu)}, "Jueves",    group=GRP_SCHED)
 i_trade_fri  = input.bool(${bool(c.fri)}, "Viernes",   group=GRP_SCHED)
 
 // ─── Estrategia de Entrada ────────────────────────────────────────────────────
-i_ema_fast  = input.int(${c.emaFast}, "EMA Rapida (periodos)",       group=GRP_ENTRY, minval=2)
-i_ema_slow  = input.int(${c.emaSlow}, "EMA Lenta (periodos)",        group=GRP_ENTRY, minval=3)
-i_rsi_len   = input.int(${c.rsiLen},  "RSI Periodo",                 group=GRP_ENTRY, minval=2)
+i_ema_fast  = input.int(${c.emaFast}, "EMA Rápida (períodos)",       group=GRP_ENTRY, minval=2)
+i_ema_slow  = input.int(${c.emaSlow}, "EMA Lenta (períodos)",        group=GRP_ENTRY, minval=3)
+i_rsi_len   = input.int(${c.rsiLen},  "RSI Período",                 group=GRP_ENTRY, minval=2)
 i_rsi_ob    = input.int(${c.rsiOb},  "RSI Sobrecompra (no Long)",   group=GRP_ENTRY, minval=51, maxval=100)
 i_rsi_os    = input.int(${c.rsiOs},  "RSI Sobreventa (no Short)",   group=GRP_ENTRY, minval=1,  maxval=49)
 i_use_long  = input.bool(${bool(c.useLong)},  "Operar Long",  group=GRP_ENTRY)
 i_use_short = input.bool(${bool(c.useShort)}, "Operar Short", group=GRP_ENTRY)
 
-// ─── Filtro de sesion ─────────────────────────────────────────────────────────
+// ─── Filtro de sesión ─────────────────────────────────────────────────────────
 _day_ok = switch dayofweek
     dayofweek.monday    => i_trade_mon
     dayofweek.tuesday   => i_trade_tue
@@ -131,10 +131,10 @@ if new_day
 // ─── Proteccion de drawdown ───────────────────────────────────────────────────
 drawdown_ok = strategy.netprofit > -i_max_dd_usd
 
-// ─── Tamano de lote ajustado ─────────────────────────────────────────────────
+// ─── Tamaño de lote ajustado por factor multiplicador ───────────────────────
 effective_lot = i_lot_size * i_lot_mult
 
-// ─── Senales de entrada ──────────────────────────────────────────────────────
+// ─── Señales de entrada ──────────────────────────────────────────────────────
 long_signal  = ta.crossover( ema_fast, ema_slow) and rsi < i_rsi_ob and rsi > 50
 short_signal = ta.crossunder(ema_fast, ema_slow) and rsi > i_rsi_os and rsi < 50
 
@@ -148,7 +148,7 @@ price_per_usd = 1.0 / (effective_lot * i_point_value)
 tp_dist       = net_tp_usd * price_per_usd
 sl_dist       = net_sl_usd * price_per_usd
 
-// ─── Ejecucion de ordenes ─────────────────────────────────────────────────────
+// ─── Ejecución de órdenes ─────────────────────────────────────────────────────
 if long_signal and can_trade and i_use_long
     strategy.entry("Long", strategy.long, qty=effective_lot, comment="LONG")
     strategy.exit("Exit Long", from_entry="Long",
@@ -163,11 +163,11 @@ if short_signal and can_trade and i_use_short
                   stop  = close + sl_dist)
     trades_today += 1
 
-// ─── Detener si se supera el drawdown maximo ─────────────────────────────────
+// ─── Detener si se supera el drawdown máximo ─────────────────────────────────
 if not drawdown_ok and strategy.position_size != 0
     strategy.close_all(comment="DRAWDOWN_LIMIT")
 
-// ─── Visualizacion ───────────────────────────────────────────────────────────
+// ─── Visualización ───────────────────────────────────────────────────────────
 plot(ema_fast, "EMA Rapida", color=color.new(color.blue,   0), linewidth=1)
 plot(ema_slow, "EMA Lenta",  color=color.new(color.orange, 0), linewidth=2)
 
@@ -186,7 +186,7 @@ plotshape(short_signal and can_trade and i_use_short,
 
 // ─── Alertas (Webhook JSON) ──────────────────────────────────────────────────
 alertcondition(long_signal  and can_trade and i_use_long,
-               title   = "Senal LONG",
+               title   = "Señal LONG",
                message = '{"action":"buy","symbol":"{{ticker}}","price":{{close}},"qty":' +
                          str.tostring(effective_lot) +
                          ',"tp_usd":' + str.tostring(i_tp_usd) +
@@ -194,7 +194,7 @@ alertcondition(long_signal  and can_trade and i_use_long,
                          ',"comment":"GetRichbymyself_LONG"}')
 
 alertcondition(short_signal and can_trade and i_use_short,
-               title   = "Senal SHORT",
+               title   = "Señal SHORT",
                message = '{"action":"sell","symbol":"{{ticker}}","price":{{close}},"qty":' +
                          str.tostring(effective_lot) +
                          ',"tp_usd":' + str.tostring(i_tp_usd) +
