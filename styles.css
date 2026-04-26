@@ -183,6 +183,8 @@ body {
   gap: 4px;
 }
 
+.navbar-mobile-menu[hidden] { display: none; }
+
 .nav-mobile-link {
   color: var(--muted);
   text-decoration: none;
