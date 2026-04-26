@@ -45,7 +45,7 @@ body {
 }
 
 /* Scroll offset for fixed nav */
-#top, #calc-section, #results, #nasdaq-section {
+#top, #profile-section, #calc-section, #results, #nasdaq-section {
   scroll-margin-top: calc(var(--nav-h) + 12px);
 }
 
@@ -1309,4 +1309,245 @@ body {
   .form-card { padding: 24px 20px; }
   .form-row-2 { grid-template-columns: 1fr; }
   .container { padding: 0 16px; }
+}
+
+/* ─── Profile / Risk Advisor Section ─────────────────────────────────────────── */
+
+/* Range slider */
+.risk-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  outline: none;
+  cursor: pointer;
+  margin: 4px 0 0;
+}
+
+.risk-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--accent);
+  transition: box-shadow .2s;
+}
+
+.risk-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px rgba(59, 130, 246, .3);
+}
+
+.risk-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: .71rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Profile selects */
+.profile-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: .9rem;
+  font-family: inherit;
+  font-weight: 500;
+  padding: 10px 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.profile-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+}
+
+.profile-select option { background: var(--surface); }
+
+/* Advice card inner layout */
+.advice-params-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.advice-param {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.advice-param-label {
+  font-size: .68rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 5px;
+}
+
+.advice-param-value {
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.advice-section-title {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--accent);
+  margin: 18px 0 10px;
+}
+
+/* Viability banner */
+.profile-viability {
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.profile-viability.ok   { background: rgba(16, 185, 129, .1); border: 1px solid rgba(16, 185, 129, .3); }
+.profile-viability.warn { background: rgba(245, 158, 11, .1);  border: 1px solid rgba(245, 158, 11, .3); }
+.profile-viability.bad  { background: rgba(244, 63, 94, .1);   border: 1px solid rgba(244, 63, 94, .3);  }
+
+/* Rules list */
+.advice-rules {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.advice-rules li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .84rem;
+  color: var(--text2);
+  line-height: 1.55;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+}
+
+.advice-rules li .rule-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+/* "Use these params" button */
+.btn-use-params {
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-size: .92rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  font-family: inherit;
+  letter-spacing: -.01em;
+  box-shadow: 0 6px 24px rgba(59, 130, 246, .3);
+}
+
+.btn-use-params:hover  { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(59, 130, 246, .4); }
+.btn-use-params:active { transform: translateY(0); }
+
+/* Full rules panel below the grid */
+#profileRulesPanel {
+  margin-top: 28px;
+}
+
+#profileRulesPanel .profile-rules-full {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+#profileRulesPanel .profile-rules-full::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--success), var(--accent));
+}
+
+#profileRulesPanel .profile-rules-full h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.02em;
+  margin-bottom: 20px;
+}
+
+.step-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-text {
+  font-size: .84rem;
+  color: var(--text2);
+  line-height: 1.55;
+}
+
+.step-text strong { color: var(--text); }
+
+@media (max-width: 640px) {
+  .advice-params-grid { grid-template-columns: 1fr 1fr; }
+  .step-list { grid-template-columns: 1fr; }
 }
