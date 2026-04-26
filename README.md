@@ -59,30 +59,36 @@ Cuentas: 5 | Factor copiado: 1x | Costos: $0
 
 ---
 
-## 🤖 Crear un Bot Automático a partir de tu Plan Personalizado
+## 🤖 Bot Automático — TradingView + Eightcap
 
-Una vez que la calculadora haya generado tu plan óptimo, los parámetros resultantes sirven directamente como especificación técnica para programar un bot de trading. A continuación se detalla qué necesita el desarrollador y cómo llevarlo a las plataformas disponibles.
+El bot se genera y configura **directamente desde la página web**, sin necesidad de tocar código.
 
-### Parámetros que el bot necesita (salida de la calculadora)
+### Pasos rápidos
 
-| Parámetro | Variable en el bot | Descripción |
-|---|---|---|
-| **Target por trade** | `TAKE_PROFIT` | Puntos/pips o monto en USD de ganancia objetivo por operación |
-| **Stop loss por trade** | `STOP_LOSS` | Puntos/pips o monto en USD de pérdida máxima por operación |
-| **Win rate objetivo (%)** | _(referencia)_ | Usado para validar la estrategia de entrada; no se programa directamente |
-| **Trades por día** | `MAX_TRADES_PER_DAY` | Límite de operaciones diarias que el bot puede abrir |
-| **Días de trading / semana** | `TRADING_DAYS` | Días en que el bot opera (ej. lunes a viernes) |
-| **Capital por cuenta** | `ACCOUNT_BALANCE` | Balance de referencia para calcular el tamaño del lote |
-| **Drawdown máximo ($)** | `MAX_DRAWDOWN_USD` | Si la pérdida diaria/total alcanza este valor, el bot se detiene |
-| **Costos / comisiones** | `COMMISSION_PER_TRADE` | Deducción por operación (spread + comisión del broker) |
-| **Factor de copiado** | `LOT_MULTIPLIER` | Multiplicador de tamaño de posición para cuentas copiadas |
-| **Número de cuentas** | _(gestión externa)_ | Administrado desde la herramienta de copy trading |
+1. **Completa la Calculadora** (sección 01) con tu target, stop loss, win rate y capital.  
+   Los valores se sincronizan automáticamente al Bot.
+2. **Ir a la sección 04 — Bot Automático** de la misma página.
+3. **Elige el instrumento, timeframe y horario** (NAS100, EUR/USD, XAU/USD, etc.).
+4. Haz clic en **"🤖 Generar mi bot"**.
+5. Descarga el archivo **`GetRichbymyself_bot.pine`** o cópialo.
+6. Sigue las **5 instrucciones visuales** que aparecen en pantalla para cargarlo en TradingView y conectar Eightcap.
 
-> **Importante:** el desarrollador también necesita definir la **lógica de entrada** (señal de compra/venta). La calculadora optimiza el *money management*; la señal es responsabilidad de la estrategia técnica (indicadores, price action, etc.).
+> ⚠️ **Plan TradingView requerido:** mínimo **Essential** para alertas en tiempo real. Se recomienda **Plus** o superior para múltiples alertas simultáneas.
 
 ---
 
-### Opción A — MetaTrader 4 / MetaTrader 5 (MQL4 / MQL5)
+### Archivos del bot en `/bot`
+
+| Archivo | Descripción |
+|---|---|
+| `bot/strategy.pine` | Versión base del Pine Script v5 con valores predeterminados (referencia) |
+| `bot/webhook-server.js` | Servidor Node.js opcional para multi-cuenta / Telegram / logging avanzado |
+| `bot/package.json` | Dependencias del servidor webhook (`express`, `dotenv`) |
+| `bot/.env.example` | Plantilla de variables de entorno para el servidor webhook |
+
+> **Nota:** El archivo `bot.js` en la raíz del proyecto es el generador integrado en la página web. El directorio `/bot` contiene el servidor webhook opcional para flujos avanzados (multi-cuenta, Telegram, etc.).
+
+---
 
 #### Requisitos para el desarrollador
 

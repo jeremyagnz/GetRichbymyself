@@ -24,6 +24,7 @@
       <li><a class="nav-link" href="#calc-section">Calculadora</a></li>
       <li><a class="nav-link" href="#results">Resultados</a></li>
       <li><a class="nav-link" href="#nasdaq-section">Análisis en Vivo</a></li>
+      <li><a class="nav-link" href="#bot-section">🤖 Bot</a></li>
     </ul>
 
     <a class="navbar-cta" href="#profile-section">Empezar aquí</a>
@@ -40,6 +41,7 @@
     <a class="nav-mobile-link" href="#calc-section">Calculadora</a>
     <a class="nav-mobile-link" href="#results">Resultados</a>
     <a class="nav-mobile-link" href="#nasdaq-section">Análisis en Vivo</a>
+    <a class="nav-mobile-link" href="#bot-section">🤖 Bot Automático</a>
     <a class="nav-mobile-link nav-mobile-cta" href="#profile-section">Empezar aquí →</a>
   </div>
 </nav>
@@ -530,6 +532,305 @@
   </div>
 </section>
 
+<!-- ─── BOT SECTION ───────────────────────────────────────────────────────── -->
+<section class="section" id="bot-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">04 &mdash; Bot Automático</span>
+      <h2 class="section-heading">Genera tu <span class="hero-heading-gradient">bot</span> de trading</h2>
+      <p class="section-desc">Configura aquí todos los parámetros y descarga el script Pine Script listo para TradingView&nbsp;+&nbsp;Eightcap en un clic. No necesitas tocar código.</p>
+    </div>
+
+    <form id="botForm" novalidate>
+      <div class="form-grid">
+
+        <!-- ── Instrumento y Sesión ── -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="form-card-icon">📡</div>
+            <div>
+              <div class="form-card-title">Instrumento y Sesión</div>
+              <div class="form-card-subtitle">Activo, timeframe y horario de operación</div>
+            </div>
+          </div>
+
+          <div class="form-fields">
+
+            <div class="field">
+              <label for="bot-instrument"><span class="field-label-text">Instrumento</span></label>
+              <select id="bot-instrument" class="profile-select">
+                <option value="CAPITALCOM:US100" data-pv="1" data-label="NAS100/US100" selected>NAS100 / US100 (Nasdaq)</option>
+                <option value="EIGHTCAP:EURUSD"  data-pv="1" data-label="EUR/USD">EUR/USD</option>
+                <option value="EIGHTCAP:GBPUSD"  data-pv="1" data-label="GBP/USD">GBP/USD</option>
+                <option value="EIGHTCAP:XAUUSD"  data-pv="1" data-label="XAU/USD (Oro)">XAU/USD (Oro)</option>
+                <option value="BITSTAMP:BTCUSD"  data-pv="1" data-label="BTC/USD">BTC/USD (Bitcoin)</option>
+                <option value="custom"            data-pv=""  data-label="">Otro (personalizado)…</option>
+              </select>
+            </div>
+
+            <div class="field" id="bot-custom-symbol-wrap" hidden>
+              <label for="bot-custom-symbol"><span class="field-label-text">Símbolo personalizado</span></label>
+              <div class="input-wrapper">
+                <input type="text" id="bot-custom-symbol" placeholder="Ej: NASDAQ:AAPL" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="bot-timeframe"><span class="field-label-text">Timeframe</span></label>
+              <select id="bot-timeframe" class="profile-select">
+                <option value="1">1 minuto</option>
+                <option value="5" selected>5 minutos</option>
+                <option value="15">15 minutos</option>
+                <option value="30">30 minutos</option>
+                <option value="60">1 hora</option>
+                <option value="240">4 horas</option>
+                <option value="D">Diario</option>
+              </select>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="bot-lot-size"><span class="field-label-text">Tamaño de lote</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-lot-size" value="1" min="0.001" step="0.01" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="bot-point-value"><span class="field-label-text">Valor del punto ($)</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-point-value" value="1" min="0.0001" step="0.01" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="bot-start-hour"><span class="field-label-text">Hora inicio (UTC)</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-start-hour" value="8" min="0" max="23" step="1" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="bot-end-hour"><span class="field-label-text">Hora cierre (UTC)</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-end-hour" value="17" min="1" max="24" step="1" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label><span class="field-label-text">Días de operación</span></label>
+              <div class="bot-days-row">
+                <label class="bot-day-check"><input type="checkbox" id="bot-mon" checked><span>Lun</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-tue" checked><span>Mar</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-wed" checked><span>Mié</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-thu" checked><span>Jue</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-fri" checked><span>Vie</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-sat"><span>Sáb</span></label>
+                <label class="bot-day-check"><input type="checkbox" id="bot-sun"><span>Dom</span></label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Money Management ── -->
+        <div class="form-card form-card-accent">
+          <div class="form-card-header">
+            <div class="form-card-icon">💰</div>
+            <div>
+              <div class="form-card-title">Money Management</div>
+              <div class="form-card-subtitle">Se auto-sincroniza desde la Calculadora</div>
+            </div>
+          </div>
+
+          <div class="form-fields">
+
+            <div class="bot-sync-note" id="bot-sync-note">
+              ℹ️ Completa la <strong>Calculadora</strong> (sección 01) y haz clic en <strong>"Calcular proyección"</strong> para sincronizar estos valores automáticamente.
+            </div>
+
+            <div class="field">
+              <label for="bot-tp">
+                <span class="field-label-text">Target por trade</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="bot-tp" value="400" min="1" step="any" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="bot-sl">
+                <span class="field-label-text">Stop loss por trade</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="bot-sl" value="300" min="1" step="any" required />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="bot-max-trades"><span class="field-label-text">Trades máx. / día</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-max-trades" value="2" min="1" max="20" step="1" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="bot-copy-factor"><span class="field-label-text">Factor copiado</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="bot-copy-factor" value="1" min="0.1" step="0.1" />
+                  <span class="input-suffix">x</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="bot-max-dd">
+                  <span class="field-label-text">Drawdown máx.</span>
+                  <span class="field-label-unit">USD</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="bot-max-dd" value="2500" min="100" step="any" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="bot-commission">
+                  <span class="field-label-text">Comisión / trade</span>
+                  <span class="field-label-unit">USD</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="bot-commission" value="0" min="0" step="any" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Advanced settings -->
+          <details class="bot-strategy-details">
+            <summary>⚙️ Ajustes avanzados de estrategia <span class="summary-hint">(EMA / RSI)</span></summary>
+            <div class="form-fields bot-advanced-fields">
+              <div class="form-row-2">
+                <div class="field">
+                  <label for="bot-ema-fast"><span class="field-label-text">EMA rápida</span></label>
+                  <div class="input-wrapper"><input type="number" id="bot-ema-fast" value="9" min="2" step="1" /></div>
+                </div>
+                <div class="field">
+                  <label for="bot-ema-slow"><span class="field-label-text">EMA lenta</span></label>
+                  <div class="input-wrapper"><input type="number" id="bot-ema-slow" value="21" min="3" step="1" /></div>
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="field">
+                  <label for="bot-rsi-len"><span class="field-label-text">RSI períodos</span></label>
+                  <div class="input-wrapper"><input type="number" id="bot-rsi-len" value="14" min="2" step="1" /></div>
+                </div>
+                <div class="field">
+                  <label for="bot-rsi-ob"><span class="field-label-text">RSI sobrecompra</span></label>
+                  <div class="input-wrapper"><input type="number" id="bot-rsi-ob" value="70" min="51" max="100" step="1" /></div>
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="field">
+                  <label for="bot-rsi-os"><span class="field-label-text">RSI sobreventa</span></label>
+                  <div class="input-wrapper"><input type="number" id="bot-rsi-os" value="30" min="1" max="49" step="1" /></div>
+                </div>
+                <div class="field">
+                  <label><span class="field-label-text">Dirección</span></label>
+                  <div class="bot-days-row">
+                    <label class="bot-day-check"><input type="checkbox" id="bot-use-long" checked><span>Long</span></label>
+                    <label class="bot-day-check"><input type="checkbox" id="bot-use-short" checked><span>Short</span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="form-footer">
+            <div id="bot-error" class="form-error" hidden></div>
+            <button type="submit" class="btn-calculate" id="bot-btn">
+              <span class="btn-text">🤖 Generar mi bot</span>
+              <span class="btn-spinner" hidden>⏳ Generando…</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- ── Result panel ── -->
+    <div id="bot-result" hidden>
+
+      <div class="bot-result-banner">
+        <div class="bot-result-banner-title">✅ Tu bot está listo para TradingView + Eightcap</div>
+        <div class="bot-result-banner-sub">Descarga el archivo y sigue los 5 pasos de abajo para activarlo en minutos.</div>
+        <div class="bot-result-actions">
+          <button class="btn-bot-download" id="btn-download-pine">⬇️ Descargar Pine Script (.pine)</button>
+          <button class="btn-bot-copy"     id="btn-copy-pine">📋 Copiar código</button>
+        </div>
+      </div>
+
+      <div class="bot-instructions">
+
+        <div class="bot-step">
+          <div class="bot-step-num">1</div>
+          <div class="bot-step-body">
+            <strong>Conecta tu cuenta Eightcap en TradingView</strong>
+            <p>Abre <a href="https://tradingview.com" target="_blank" rel="noopener">TradingView.com</a> → panel inferior <em>Trading</em> → busca <strong>Eightcap</strong> → <em>Connect</em> → inicia sesión con tus credenciales.</p>
+          </div>
+        </div>
+
+        <div class="bot-step">
+          <div class="bot-step-num">2</div>
+          <div class="bot-step-body">
+            <strong>Abre el Pine Script Editor y carga el archivo</strong>
+            <p>En TradingView → <em>Pine Script Editor</em> (botón inferior) → <em>Open</em> → selecciona <code>GetRichbymyself_bot.pine</code> que descargaste → <em>Save + Add to chart</em>.</p>
+          </div>
+        </div>
+
+        <div class="bot-step">
+          <div class="bot-step-num">3</div>
+          <div class="bot-step-body">
+            <strong>Selecciona el instrumento y timeframe correcto</strong>
+            <p>En el gráfico busca <strong id="bot-instr-display" class="bot-highlight"></strong> y asegúrate de estar en timeframe <strong id="bot-tf-display" class="bot-highlight"></strong>. Los valores de TP/SL/Drawdown ya están configurados con tus datos.</p>
+          </div>
+        </div>
+
+        <div class="bot-step">
+          <div class="bot-step-num">4</div>
+          <div class="bot-step-body">
+            <strong>Crea la alerta de ejecución automática</strong>
+            <p>Haz clic en ⏰ → Condición: <code>[Bot] GetRichbymyself — order fills only</code> → activa <em>"Create server-side alert"</em> → <em>Create</em>. El bot operará automáticamente cada vez que se dispare la señal.</p>
+          </div>
+        </div>
+
+        <div class="bot-step">
+          <div class="bot-step-num">5</div>
+          <div class="bot-step-body">
+            <strong>⚠️ Opera en Paper Trading primero (obligatorio)</strong>
+            <p>Antes de usar dinero real, selecciona la cuenta de <em>Paper Trading</em> de TradingView y deja el bot correr <strong>al menos 1 semana</strong>. Verifica que TP, SL y el límite de trades diarios funcionan correctamente.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="bot-code-details" id="bot-code-details">
+        <summary>📄 Vista previa del Pine Script generado <span class="summary-hint">(clic para expandir)</span></summary>
+        <pre class="bot-code-preview" id="bot-code-preview"></pre>
+      </details>
+
+    </div>
+
+  </div>
+</section>
+
 <!-- ─── FOOTER ─────────────────────────────────────────────────────────────── -->
 <footer class="footer">
   <div class="container footer-inner">
@@ -541,6 +842,7 @@
       <a href="#calc-section" class="footer-link">Calculadora</a>
       <a href="#results" class="footer-link">Resultados</a>
       <a href="#nasdaq-section" class="footer-link">Análisis en Vivo</a>
+      <a href="#bot-section" class="footer-link">🤖 Bot</a>
     </nav>
   </div>
   <div class="footer-bottom">
@@ -555,5 +857,6 @@
 
 <script src="calculator.js"></script>
 <script src="nasdaq.js"></script>
+<script src="bot.js"></script>
 </body>
 </html>
