@@ -90,6 +90,83 @@ function symBase(s) {
   return (s && s.includes(':')) ? s.split(':').pop() : s;
 }
 
+// ─── Strategy overlay configuration ─────────────────────────────────────────
+// Maps each timeframe to the EMA lines described in the Guía estratégica:
+//   5 min / 15 min  → EMA 9 (blue) + EMA 21 (violet)  – pullback entries
+//   30 min / 60 min → EMA 21 (violet) + EMA 50 (amber) – intraday bias
+//   4H              → EMA 50 (amber) + EMA 200 (red)   – institutional OBs
+//   1D              → EMA 20 (blue) + EMA 50 (amber) + EMA 200 (red) – macro
+const STRATEGY_EMAS = {
+  '5':   [{length: 9,   color: '#3b82f6', width: 2}, {length: 21,  color: '#8b5cf6', width: 2}],
+  '15':  [{length: 9,   color: '#3b82f6', width: 2}, {length: 21,  color: '#8b5cf6', width: 2}],
+  '30':  [{length: 21,  color: '#8b5cf6', width: 2}, {length: 50,  color: '#f59e0b', width: 2}],
+  '60':  [{length: 21,  color: '#8b5cf6', width: 2}, {length: 50,  color: '#f59e0b', width: 2}],
+  '240': [{length: 50,  color: '#f59e0b', width: 2}, {length: 200, color: '#ef4444', width: 2}],
+  'D':   [{length: 20,  color: '#3b82f6', width: 2}, {length: 50,  color: '#f59e0b', width: 2}, {length: 200, color: '#ef4444', width: 2}],
+};
+
+// Psychological round-number levels for common futures/indices.
+// Shown as dashed horizontal lines on the chart.
+const PSYCH_LEVELS = {
+  NQ:  [18000, 19000, 20000, 21000, 22000, 23000],
+  ES:  [4500, 5000, 5500, 6000],
+  YM:  [38000, 39000, 40000, 41000, 42000],
+  RTY: [1800, 2000, 2200],
+  SPX: [4500, 5000, 5500, 6000],
+  GC:  [2000, 2100, 2200, 2300, 2400, 2500, 3000],
+  CL:  [60, 70, 80, 90, 100],
+  BTC: [50000, 60000, 70000, 80000, 90000, 100000],
+  ETH: [2000, 2500, 3000, 3500, 4000],
+};
+
+/**
+ * Adds EMA lines and optional psychological levels to the TradingView chart.
+ * Called after onChartReady. Uses only the public widget JS API so it works
+ * with the free TradingView embed (s3.tradingview.com/tv.js).
+ *
+ * @param {object} chart  - widget.activeChart() reference
+ * @param {string} interval - current chart interval key ('5','15','30','60','240','D')
+ * @param {string} symbol   - full symbol string (e.g. 'CME_MINI:NQ1!')
+ */
+function addStrategyOverlays(chart, interval, symbol) {
+  const emas = STRATEGY_EMAS[interval] || STRATEGY_EMAS['5'];
+
+  // Add each EMA as an individual study so they get distinct colours.
+  emas.forEach(({length, color, width}) => {
+    chart.createStudy('Moving Average Exponential', false, false, [length], {
+      'Plot.color':     color,
+      'Plot.linewidth': width,
+    });
+  });
+
+  // Psychological levels — silently skip if the widget tier doesn't support
+  // createShape, or if no levels are configured for this symbol.
+  const base = symBase(symbol).toUpperCase();
+  const ticker = Object.keys(PSYCH_LEVELS).find(k => base.includes(k));
+  if (!ticker) return;
+  const levels = PSYCH_LEVELS[ticker];
+  const nowTs  = Math.floor(Date.now() / 1000);
+  levels.forEach(price => {
+    try {
+      chart.createShape(
+        {time: nowTs, price},
+        {
+          shape: 'horizontal_line',
+          overrides: {
+            linecolor:  '#64748b',
+            linestyle:  2,           // dashed
+            linewidth:  1,
+            showLabel:  true,
+            text:       price.toLocaleString(),
+            textcolor:  '#94a3b8',
+            fontsize:   11,
+          },
+        },
+      );
+    } catch (_) { /* createShape not available in this widget tier */ }
+  });
+}
+
 // ─── TradingView chart widget ─────────────────────────────────────────────────
 
 let tvScriptLoaded = false;
@@ -142,20 +219,24 @@ function renderChart(interval, symbol) {
       theme: 'dark',
       style: '1',
       locale: 'es',
-      toolbar_bg: '#1a1d27',
-      backgroundColor: '#0f1117',
-      gridColor: '#2e3350',
+      toolbar_bg: '#0d1526',
+      backgroundColor: '#060c18',
+      gridColor: '#1e3054',
       enable_publishing: false,
       hide_top_toolbar: false,
       hide_side_toolbar: false,
       allow_symbol_change: true,
-      studies: ['RSI@tv-basicstudies', 'VWAP@tv-basicstudies', 'MAExp@tv-basicstudies'],
+      studies: ['RSI@tv-basicstudies', 'VWAP@tv-basicstudies'],
       container_id: inner.id,
     });
 
     tvWidgetInstance = widget;
 
     widget.onChartReady(() => {
+      // Add strategy-specific EMA lines and psychological levels for the loaded
+      // symbol/interval. This mirrors the indicators described in the Guía estratégica.
+      try { addStrategyOverlays(widget.activeChart(), interval, symbol); } catch (_) {}
+
       // TradingView fires spurious onSymbolChanged / onIntervalChanged events
       // immediately after the chart finishes initialising (confirming its own
       // symbol/interval, or echoing a previous session's values).  We ignore
@@ -319,11 +400,23 @@ function renderDecisionGuide(interval, symbol) {
         <span>${sym(guide.avoid)}</span>
       </div>
     </div>
-    <div class="dec-note">
-      Regla de oro: solo entra si R/R ≥ 1.33 ($400 target / $300 SL) y la señal del widget
-      coincide con la dirección del marco superior.
-    </div>
+    ${buildDecNote()}
   `;
+}
+
+function buildDecNote() {
+  const cp = window.calcParams;
+  if (cp) {
+    const rr = cp.rrRatio.toFixed(2);
+    return `<div class="dec-note">
+      Regla de oro: solo entra si R/R ≥ ${rr} ($${cp.target} target / $${cp.stopLoss} SL) y la señal del widget
+      coincide con la dirección del marco superior.
+    </div>`;
+  }
+  return `<div class="dec-note">
+    Regla de oro: solo entra si R/R ≥ 1.33 ($400 target / $300 SL) y la señal del widget
+    coincide con la dirección del marco superior.
+  </div>`;
 }
 
 // ─── Per-timeframe strategic tips (collapsible) ───────────────────────────────
@@ -494,3 +587,70 @@ function renderAll() {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 renderAll();
+
+// Refresh decision guide whenever the calculator updates the params
+document.addEventListener('calcParamsUpdated', () => {
+  renderDecisionGuide(taInterval, taSymbol);
+});
+
+// ─── Scroll-to-top button ────────────────────────────────────────────────────
+
+(function () {
+  const btn = document.getElementById('scroll-top-btn');
+  if (!btn) return;
+
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
+// ─── Nav: highlight active section + mobile menu toggle ──────────────────────
+
+(function () {
+  const menuBtn  = document.getElementById('nav-menu-btn');
+  const mobileMenu = document.getElementById('nav-mobile-menu');
+
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', () => {
+      const isHidden = mobileMenu.hidden;
+      mobileMenu.hidden = !isHidden;
+      menuBtn.classList.toggle('open', isHidden);
+      menuBtn.setAttribute('aria-expanded', String(isHidden));
+    });
+
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        mobileMenu.hidden = true;
+        menuBtn.classList.remove('open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // Highlight nav link for the visible section
+  const sections = [
+    { id: 'calc-section',   link: document.querySelector('.nav-link[href="#calc-section"]') },
+    { id: 'results',        link: document.querySelector('.nav-link[href="#results"]') },
+    { id: 'nasdaq-section', link: document.querySelector('.nav-link[href="#nasdaq-section"]') },
+  ];
+
+  function updateActiveNav() {
+    const mid = window.scrollY + window.innerHeight / 2;
+    let active = sections[0];
+    for (const s of sections) {
+      const el = document.getElementById(s.id);
+      if (!el) continue;
+      if (el.offsetTop <= mid) active = s;
+    }
+    sections.forEach(s => s.link && s.link.classList.remove('active'));
+    if (active.link) active.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+})();
