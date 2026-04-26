@@ -223,7 +223,8 @@ body {
 .hero-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
+  filter: blur(80px);
+  will-change: transform;
 }
 
 .hero-orb-1 {
