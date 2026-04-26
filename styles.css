@@ -1832,3 +1832,13 @@ body {
   .bot-result-actions { flex-direction: column; }
   .btn-bot-download, .btn-bot-copy { width: 100%; justify-content: center; }
 }
+
+/* ─── Lot size highlight param card ─────────────────────────────────────────── */
+.advice-param-highlight {
+  background: linear-gradient(135deg, rgba(59, 130, 246, .1), rgba(139, 92, 246, .08));
+  border-color: rgba(59, 130, 246, .35) !important;
+}
+
+.advice-param-highlight .advice-param-label {
+  color: var(--accent);
+}

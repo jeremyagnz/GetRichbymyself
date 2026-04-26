@@ -179,6 +179,40 @@
                 </select>
               </div>
             </div>
+
+            <div class="field">
+              <label for="profileInstrument"><span class="field-label-text">Instrumento que vas a operar</span></label>
+              <select id="profileInstrument" class="profile-select">
+                <option value="NAS100" data-sl="300" data-pv="1"  selected>NAS100 / US100 (Nasdaq)</option>
+                <option value="EURUSD" data-sl="30"  data-pv="10"        >EUR/USD</option>
+                <option value="GBPUSD" data-sl="30"  data-pv="10"        >GBP/USD</option>
+                <option value="XAUUSD" data-sl="200" data-pv="1"         >XAU/USD (Oro)</option>
+                <option value="BTCUSD" data-sl="1000" data-pv="1"        >BTC/USD (Bitcoin)</option>
+                <option value="custom" data-sl=""    data-pv=""          >Otro (personalizado)…</option>
+              </select>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="profileSlPoints">
+                  <span class="field-label-text">Stop Loss típico</span>
+                  <span class="field-label-unit profile-sl-unit" id="profileSlUnit">puntos</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="number" id="profileSlPoints" value="300" min="1" step="1" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="profilePtValue">
+                  <span class="field-label-text">Valor del punto</span>
+                  <span class="field-label-unit">$ / lote</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">$</span>
+                  <input type="number" id="profilePtValue" value="1" min="0.0001" step="0.01" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="form-footer">
