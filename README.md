@@ -230,3 +230,140 @@ Para que un programador construya el bot, compártele:
 5. ✅ Timeframe (1m, 5m, 15m, 1H, etc.).
 6. ✅ Si deseas copy trading: número de cuentas y factor de copiado.
 7. ✅ Credenciales de API del broker (solo al desarrollador de confianza, nunca en código público).
+
+---
+
+## 🤖 Bot incluido — Archivos en `/bot`
+
+El directorio `/bot` contiene el bot listo para usar:
+
+| Archivo | Descripción |
+|---|---|
+| `bot/strategy.pine` | Estrategia Pine Script v5 para TradingView (EMA + RSI con money management completo) |
+| `bot/webhook-server.js` | Servidor Node.js que recibe alertas de TradingView y las reenvía a Eightcap/MT5 |
+| `bot/package.json` | Dependencias del servidor webhook (`express`, `dotenv`) |
+| `bot/.env.example` | Plantilla de variables de entorno (copia a `.env` y completa los valores) |
+
+---
+
+### 🚀 Inicio rápido — TradingView + Eightcap (integración directa, sin servidor)
+
+> **Esta es la opción más sencilla.** No requiere desplegar ningún servidor.
+
+1. **Conectar Eightcap en TradingView**
+   - En TradingView, abre el *Trading Panel* (barra inferior).
+   - Busca **Eightcap** y haz clic en *Connect*.
+   - Inicia sesión con tus credenciales de Eightcap.
+
+2. **Agregar la estrategia**
+   - Abre el *Pine Script Editor* (botón en la barra inferior).
+   - Pega el contenido de `bot/strategy.pine` y haz clic en **Save + Add to chart**.
+
+3. **Configurar los inputs** (panel de configuración del script)
+
+   | Input | Valor recomendado (ajusta según tu calculadora) |
+   |---|---|
+   | Target por trade ($) | 400 |
+   | Stop loss por trade ($) | 300 |
+   | Trades máx. por día | 2 |
+   | Drawdown máximo ($) | 2500 |
+   | Comisión por trade ($) | 0 (ajusta según Eightcap) |
+   | Factor de copiado | 1.0 |
+   | Tamaño de lote fijo | 1.0 (ver tabla de instrumentos) |
+   | Valor del punto ($) | 1.0 para NAS100/US100 |
+   | Hora inicio/cierre (UTC) | 8 / 17 |
+
+4. **Crear alerta** para ejecución automática
+   - Haz clic en el ícono de alarma ⏰.
+   - Condición: `[Bot] GetRichbymyself — order fills only`.
+   - En *Notifications* → habilitar **"Create server-side alert"**.
+   - Si usas integración directa de broker, las órdenes se ejecutan sin webhook.
+
+5. **Paper trading primero** — corre la estrategia en modo demo antes de usar dinero real.
+
+> ⚠️ **Plan TradingView requerido:** mínimo **Essential** (para alertas en tiempo real y webhooks). Se recomienda **Plus** o superior si vas a tener múltiples alertas activas simultáneamente.
+
+---
+
+### 🖥️ Inicio rápido — Servidor Webhook (multi-cuenta / Telegram / logging)
+
+> Usa esta opción si quieres ejecutar en múltiples cuentas, recibir notificaciones por Telegram, o tener un log completo de todas las órdenes.
+
+#### Requisitos del servidor
+
+- **Node.js** ≥ 18
+- Un servidor con IP pública accesible desde internet (ej. VPS, Railway, Render, Fly.io, Heroku)
+- **Plan TradingView Essential o superior** (para webhooks)
+- Acceso a la API REST de MetaTrader 5 (ver opciones más abajo)
+
+#### Opciones para la API MT5 con Eightcap
+
+| Opción | Descripción | Costo |
+|---|---|---|
+| **MetaAPI** ([metaapi.cloud](https://metaapi.cloud)) | SaaS: conecta tu cuenta MT5 de Eightcap y expone una API REST. **Recomendado.** | Plan gratis disponible |
+| **EA Puente propio** | Expert Advisor en MT5 que levanta un servidor HTTP local | Gratuito (requiere MT5 siempre activo) |
+| **TradeLocker API** | Si Eightcap ofrece acceso a TradeLocker | Verificar con Eightcap |
+
+#### Pasos de instalación
+
+```bash
+# 1. Ir al directorio del bot
+cd bot
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Edita .env con tu editor:
+#   WEBHOOK_SECRET = token largo y aleatorio (genera con: openssl rand -hex 32)
+#   MT5_API_URL    = URL de tu API MT5 (ej. https://tu-instancia.metaapi.cloud)
+#   MT5_API_KEY    = clave de API de MetaAPI u otro proveedor
+
+# 4. Iniciar el servidor
+npm start
+```
+
+El servidor escuchará en `http://localhost:3000` (o el puerto configurado en `PORT`).
+
+#### URL del webhook para TradingView
+
+```
+https://tu-dominio.com/webhook?token=TU_WEBHOOK_SECRET
+```
+
+Pega esta URL en el campo **Webhook URL** al crear la alerta en TradingView.
+
+#### Notificaciones Telegram (opcional)
+
+Agrega en tu `.env`:
+```
+TELEGRAM_BOT_TOKEN=token_de_tu_bot_de_telegram
+TELEGRAM_CHAT_ID=tu_chat_id
+```
+
+Para obtener un bot de Telegram: habla con [@BotFather](https://t.me/BotFather) en Telegram.
+
+---
+
+### ⚠️ Tabla de Valor del Punto por instrumento (Eightcap)
+
+Ajusta el input **"Valor del punto ($)"** en el script según el instrumento:
+
+| Instrumento | Símbolo TV | Valor del punto | Lote mínimo Eightcap |
+|---|---|---|---|
+| NASDAQ 100 | `CAPITALCOM:US100` | 1.0 | 0.1 (mini) |
+| EUR/USD | `EIGHTCAP:EURUSD` | 1.0 por pip | 0.01 |
+| XAU/USD (Oro) | `EIGHTCAP:XAUUSD` | 1.0 | 0.01 |
+| GBP/USD | `EIGHTCAP:GBPUSD` | 1.0 por pip | 0.01 |
+| BTC/USD | `EIGHTCAP:BTCUSD` | 1.0 | 0.001 |
+
+> Verifica siempre las especificaciones de contrato en tu cuenta Eightcap antes de operar con dinero real.
+
+---
+
+### 🔐 Seguridad
+
+- **Nunca** subas el archivo `.env` a Git (ya está en `.gitignore`).
+- El `WEBHOOK_SECRET` protege el endpoint de alertas externas no autorizadas.
+- Las credenciales de la API de Eightcap/MT5 solo deben existir en el archivo `.env` del servidor, nunca en el código fuente.

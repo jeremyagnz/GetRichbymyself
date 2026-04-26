@@ -1,0 +1,17 @@
+{
+  "name": "getrichbymyself-webhook-server",
+  "version": "1.0.0",
+  "description": "Servidor webhook para recibir alertas de TradingView y ejecutarlas en Eightcap vía API MT5",
+  "main": "webhook-server.js",
+  "scripts": {
+    "start": "node webhook-server.js",
+    "dev": "node --watch webhook-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
