@@ -3,248 +3,431 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trading Performance Calculator</title>
+  <title>TradingCalc Pro — Calculadora de Rendimiento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<nav class="top-nav" id="top-nav">
-  <div class="nav-inner">
-    <a class="nav-brand" href="#top">📈 TradingCalc</a>
-    <div class="nav-links">
-      <a class="nav-link" href="#calc-section">Calculadora</a>
-      <a class="nav-link" href="#results" id="nav-results-link">Resultados</a>
-      <a class="nav-link" href="#nasdaq-section">Análisis en Vivo</a>
-    </div>
-    <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menú">☰</button>
+<!-- ─── NAVBAR ─────────────────────────────────────────────────────────────── -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a class="navbar-logo" href="#top">
+      <span class="navbar-logo-icon">📈</span>
+      <span class="navbar-logo-text">TradingCalc <span class="navbar-logo-pro">Pro</span></span>
+    </a>
+
+    <ul class="navbar-nav" role="list">
+      <li><a class="nav-link" href="#calc-section">Calculadora</a></li>
+      <li><a class="nav-link" href="#results">Resultados</a></li>
+      <li><a class="nav-link" href="#nasdaq-section">Análisis en Vivo</a></li>
+    </ul>
+
+    <a class="navbar-cta" href="#calc-section">Calcular ahora</a>
+
+    <button class="navbar-mobile-toggle" id="nav-menu-btn" aria-label="Abrir menú" aria-expanded="false">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
   </div>
-  <div class="nav-mobile-menu" id="nav-mobile-menu" hidden>
+
+  <div class="navbar-mobile-menu" id="nav-mobile-menu" hidden>
     <a class="nav-mobile-link" href="#calc-section">Calculadora</a>
     <a class="nav-mobile-link" href="#results">Resultados</a>
     <a class="nav-mobile-link" href="#nasdaq-section">Análisis en Vivo</a>
+    <a class="nav-mobile-link nav-mobile-cta" href="#calc-section">Calcular ahora →</a>
   </div>
 </nav>
 
-<header id="top">
-  <div class="header-badge">Herramienta profesional de trading</div>
-  <h1>📈 Trading Performance Calculator</h1>
-  <p>Calcula proyecciones de rentabilidad individual y multi-cuenta (copy trading)</p>
-</header>
+<!-- ─── HERO ───────────────────────────────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="hero-orbs" aria-hidden="true">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+  </div>
 
-<div class="container" id="calc-section">
+  <div class="container hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Herramienta profesional de trading
+    </div>
 
-  <!-- ─── INPUT FORM ──────────────────────────────────────────────────────── -->
-  <form id="calcForm">
-    <div class="grid-2">
+    <h1 class="hero-heading">
+      Maximiza tu<br>
+      <span class="hero-heading-gradient">rendimiento</span><br>
+      en los mercados
+    </h1>
 
-      <!-- Trading base -->
-      <div class="card">
-        <h2><span class="icon">⚙️</span> Parámetros de Trading</h2>
+    <p class="hero-subtitle">
+      Calcula proyecciones precisas de rentabilidad individual y multi-cuenta.<br>
+      Análisis de riesgo avanzado con copy trading integrado.
+    </p>
 
-        <div class="field">
-          <label for="target">Target por trade ($)</label>
-          <input type="number" id="target" value="400" min="0.01" step="any" required />
-        </div>
-        <div class="field">
-          <label for="stopLoss">Stop loss por trade ($)</label>
-          <input type="number" id="stopLoss" value="300" min="0.01" step="any" required />
-        </div>
-        <div class="field">
-          <label for="winRate">Win rate (%)</label>
-          <input type="number" id="winRate" value="67" min="1" max="99" step="0.1" required />
-        </div>
-        <div class="field">
-          <label for="tradesPerDay">Trades por día</label>
-          <input type="number" id="tradesPerDay" value="2" min="1" step="1" required />
-        </div>
-        <div class="field">
-          <label for="daysPerWeek">Días de trading por semana</label>
-          <input type="number" id="daysPerWeek" value="5" min="1" max="7" step="1" required />
-        </div>
-        <div class="field">
-          <label for="timeValue">Tiempo a proyectar</label>
-          <div class="field-row">
-            <input type="number" id="timeValue" value="5" min="1" step="1" required class="field-row-input" />
-            <select id="timeUnit" class="field-row-select">
-              <option value="weeks">Semanas</option>
-              <option value="months" selected>Meses</option>
-            </select>
+    <div class="hero-features">
+      <div class="hero-feature"><span class="hero-feature-icon">⚡</span><span>Proyecciones instantáneas</span></div>
+      <div class="hero-feature"><span class="hero-feature-icon">📊</span><span>7 métricas de riesgo</span></div>
+      <div class="hero-feature"><span class="hero-feature-icon">🔁</span><span>Multi-cuenta & Copy Trading</span></div>
+      <div class="hero-feature"><span class="hero-feature-icon">📡</span><span>Señales en tiempo real</span></div>
+    </div>
+
+    <div class="hero-actions">
+      <a class="btn-hero-primary" href="#calc-section"><span>🚀</span> Calcular mi rendimiento</a>
+      <a class="btn-hero-secondary" href="#nasdaq-section">Ver mercados en vivo →</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-indicator" aria-hidden="true">
+    <div class="hero-scroll-mouse"><div class="hero-scroll-dot"></div></div>
+  </div>
+</section>
+
+<!-- ─── CALCULATOR SECTION ────────────────────────────────────────────────── -->
+<section class="section" id="calc-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">01 &mdash; Calculadora</span>
+      <h2 class="section-heading">Configura tu estrategia</h2>
+      <p class="section-desc">Ingresa tus parámetros de trading y capital para generar proyecciones con análisis de riesgo completo.</p>
+    </div>
+
+    <form id="calcForm" novalidate>
+      <div class="form-grid">
+
+        <!-- Trading Params -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="form-card-icon">⚙️</div>
+            <div>
+              <div class="form-card-title">Parámetros de Trading</div>
+              <div class="form-card-subtitle">Target, stop loss y frecuencia operativa</div>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <div class="field">
+              <label for="target">
+                <span class="field-label-text">Target por trade</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="target" value="400" min="0.01" step="any" required placeholder="400" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="stopLoss">
+                <span class="field-label-text">Stop loss por trade</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="stopLoss" value="300" min="0.01" step="any" required placeholder="300" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="winRate">
+                <span class="field-label-text">Win rate objetivo</span>
+                <span class="field-label-unit">%</span>
+              </label>
+              <div class="input-wrapper">
+                <input type="number" id="winRate" value="67" min="1" max="99" step="0.1" required placeholder="67" />
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="tradesPerDay"><span class="field-label-text">Trades / día</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="tradesPerDay" value="2" min="1" step="1" required placeholder="2" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="daysPerWeek"><span class="field-label-text">Días / semana</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="daysPerWeek" value="5" min="1" max="7" step="1" required placeholder="5" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="timeValue"><span class="field-label-text">Horizonte de proyección</span></label>
+              <div class="field-row">
+                <div class="input-wrapper field-row-input">
+                  <input type="number" id="timeValue" value="5" min="1" step="1" required placeholder="5" />
+                </div>
+                <select id="timeUnit" class="field-row-select">
+                  <option value="weeks">Semanas</option>
+                  <option value="months" selected>Meses</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Capital & Multi-Account -->
+        <div class="form-card form-card-accent">
+          <div class="form-card-header">
+            <div class="form-card-icon">💰</div>
+            <div>
+              <div class="form-card-title">Capital &amp; Multi-Cuenta</div>
+              <div class="form-card-subtitle">Gestión de capital y cuentas de copy trading</div>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <div class="field">
+              <label for="capitalPerAccount">
+                <span class="field-label-text">Capital por cuenta</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="capitalPerAccount" value="10000" min="1" step="any" required placeholder="10000" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="maxDrawdown">
+                <span class="field-label-text">Drawdown máximo / cuenta</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="maxDrawdown" value="2500" min="1" step="any" required placeholder="2500" />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="numAccounts"><span class="field-label-text">Nº de cuentas</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="numAccounts" value="5" min="1" step="1" required placeholder="5" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="copyFactor"><span class="field-label-text">Factor de copiado</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="copyFactor" value="1" min="0.01" step="0.01" required placeholder="1" />
+                  <span class="input-suffix">x</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="costsPerAccount">
+                <span class="field-label-text">Costos / trade / cuenta</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="costsPerAccount" value="0" min="0" step="any" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <div id="form-error" class="form-error" hidden></div>
+            <button type="submit" class="btn-calculate" id="calc-btn">
+              <span class="btn-text">🚀 Calcular proyección</span>
+              <span class="btn-spinner" hidden>⏳ Calculando…</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ─── RESULTS SECTION ───────────────────────────────────────────────────── -->
+<div id="results">
+  <section class="section section-results">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">02 &mdash; Resultados</span>
+        <h2 class="section-heading">Análisis completo</h2>
       </div>
 
-      <!-- Capital & multi-account -->
+      <div class="results-section-label">Resumen Ejecutivo</div>
+      <div id="exec-summary"></div>
+
+      <div class="results-section-label">Resultado por Cuenta</div>
+      <div id="per-account-metrics"></div>
+
+      <div class="results-section-label">Resultado Consolidado</div>
+      <div id="consolidated-metrics"></div>
+
+      <div class="results-section-label">Escenarios &mdash; Base &middot; Conservador &middot; Optimista &middot; Escalado</div>
+      <div id="scenarios-section"></div>
+
+      <div class="results-section-label">Análisis de Riesgos</div>
+      <div id="risk-section"></div>
+
+      <div class="results-section-label">Recomendaciones de Escalado</div>
+      <div id="recs-section"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── LIVE ANALYSIS SECTION ─────────────────────────────────────────────── -->
+<section class="section" id="nasdaq-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">03 &mdash; Mercados en Vivo</span>
+      <h2 class="section-heading">Análisis en tiempo real</h2>
+      <p class="section-desc">Busca cualquier activo &mdash; acciones, divisas, crypto, futuros &mdash; y obtén el gráfico con la señal técnica en vivo.</p>
+    </div>
+
+    <!-- Symbol search + timeframe selector -->
+    <div class="symbol-bar">
+      <div class="symbol-input-wrapper">
+        <span class="symbol-search-icon">🔍</span>
+        <input
+          type="text"
+          id="symbol-input"
+          class="symbol-input"
+          value="CME_MINI:NQ1!"
+          placeholder="Ej: AAPL, EURUSD, BTCUSDT, CME_MINI:NQ1!"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
+      </div>
+      <p id="symbol-error" class="symbol-error" hidden></p>
+      <div class="tf-selector">
+        <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
+        <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>
+        <button class="tf-btn"        data-interval="30"  data-label="30 min">30 min</button>
+        <button class="tf-btn"        data-interval="60"  data-label="1 hora">1 hora</button>
+        <button class="tf-btn"        data-interval="240" data-label="4 horas">4 horas</button>
+        <button class="tf-btn"        data-interval="D"   data-label="1 día">1 día</button>
+      </div>
+    </div>
+
+    <!-- TradingView Chart -->
+    <div class="chart-wrapper">
+      <div id="tv-chart-container"></div>
+    </div>
+
+    <!-- Live signal row -->
+    <div class="nasdaq-live-grid">
+
+      <!-- TradingView Technical Analysis Widget -->
+      <div class="card live-signal-card">
+        <div class="card-header-row">
+          <div class="card-header-icon">📡</div>
+          <div>
+            <div class="card-title">Señal en Vivo</div>
+            <div class="card-subtitle">
+              <span id="live-signal-tf">5 min</span>
+              &middot;
+              <span id="live-signal-symbol" class="symbol-badge">NQ1!</span>
+            </div>
+          </div>
+        </div>
+        <p class="ta-hint">Indicadores en tiempo real de TradingView (osciladores + medias móviles)</p>
+
+        <div class="ta-mini-bar">
+          <div class="symbol-input-wrapper">
+            <span class="symbol-search-icon">🔍</span>
+            <input
+              type="text"
+              id="ta-symbol-input"
+              class="symbol-input"
+              value="CME_MINI:NQ1!"
+              placeholder="Ej: EURUSD, NQ1!, AAPL, XAUUSD…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button id="ta-symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
+          </div>
+          <p id="ta-symbol-error" class="symbol-error" hidden></p>
+
+          <div class="ta-symbol-chips">
+            <button class="ta-sym-chip" data-symbol="CME_MINI:NQ1!">NQ1! (Nasdaq)</button>
+            <button class="ta-sym-chip" data-symbol="EURUSD">EUR/USD</button>
+            <button class="ta-sym-chip" data-symbol="GBPUSD">GBP/USD</button>
+            <button class="ta-sym-chip" data-symbol="XAUUSD">Oro</button>
+            <button class="ta-sym-chip" data-symbol="BITSTAMP:BTCUSD">Bitcoin</button>
+            <button class="ta-sym-chip" data-symbol="NASDAQ:AAPL">AAPL</button>
+            <button class="ta-sym-chip" data-symbol="NASDAQ:SPY">SPY</button>
+          </div>
+
+          <div class="tf-selector ta-tf-selector">
+            <button class="ta-tf-btn active" data-interval="5">5 min</button>
+            <button class="ta-tf-btn" data-interval="15">15 min</button>
+            <button class="ta-tf-btn" data-interval="30">30 min</button>
+            <button class="ta-tf-btn" data-interval="60">1 hora</button>
+            <button class="ta-tf-btn" data-interval="240">4 horas</button>
+            <button class="ta-tf-btn" data-interval="D">1 día</button>
+          </div>
+        </div>
+
+        <div id="ta-widget-container"></div>
+      </div>
+
+      <!-- Decision guide -->
       <div class="card">
-        <h2><span class="icon">💰</span> Capital & Multi-Cuenta</h2>
-
-        <div class="field">
-          <label for="capitalPerAccount">Capital por cuenta ($)</label>
-          <input type="number" id="capitalPerAccount" value="10000" min="1" step="any" required />
+        <div class="card-header-row">
+          <div class="card-header-icon">🧠</div>
+          <div>
+            <div class="card-title">Cómo operar esta señal</div>
+            <div class="card-subtitle">Guía de acción basada en la señal del widget</div>
+          </div>
         </div>
-        <div class="field">
-          <label for="maxDrawdown">Drawdown máximo permitido por cuenta ($)</label>
-          <input type="number" id="maxDrawdown" value="2500" min="1" step="any" required />
-        </div>
-        <div class="field">
-          <label for="numAccounts">Número de cuentas conectadas</label>
-          <input type="number" id="numAccounts" value="5" min="1" step="1" required />
-        </div>
-        <div class="field">
-          <label for="copyFactor">Factor de copiado (1 = 1x réplica exacta)</label>
-          <input type="number" id="copyFactor" value="1" min="0.01" step="0.01" required />
-        </div>
-        <div class="field">
-          <label for="costsPerAccount">Costos/fees por trade, por cuenta ($)</label>
-          <input type="number" id="costsPerAccount" value="0" min="0" step="any" />
-        </div>
-
-        <button type="submit" class="btn" id="calc-btn">
-          <span class="btn-text">🚀 Calcular proyección</span>
-          <span class="btn-spinner" hidden>⏳ Calculando…</span>
-        </button>
-        <div id="form-error" class="form-error" hidden></div>
-      </div>
-
-    </div>
-  </form>
-
-  <!-- ─── RESULTS ─────────────────────────────────────────────────────────── -->
-  <div id="results">
-
-    <div class="section-title">1. Resumen Ejecutivo</div>
-    <div id="exec-summary"></div>
-
-    <div class="section-title">2. Resultado por Cuenta</div>
-    <div id="per-account-metrics"></div>
-
-    <div class="section-title">3. Resultado Consolidado</div>
-    <div id="consolidated-metrics"></div>
-
-    <div class="section-title">4–5. Escenarios: Base · Conservador · Optimista · Escalado</div>
-    <div id="scenarios-section"></div>
-
-    <div class="section-title">6. Análisis de Riesgos</div>
-    <div id="risk-section"></div>
-
-    <div class="section-title">7. Recomendaciones de Escalado</div>
-    <div id="recs-section"></div>
-
-  </div>
-
-</div>
-
-<!-- ─── NASDAQ SECTION ──────────────────────────────────────────────────────── -->
-<div class="container" id="nasdaq-section">
-  <div class="section-title nasdaq-title">📊 Análisis en Tiempo Real</div>
-  <p class="nasdaq-subtitle">Busca cualquier activo (acciones, divisas, crypto, futuros) y el gráfico con la señal en vivo se actualizarán para ese símbolo.</p>
-
-  <!-- Symbol search + timeframe selector -->
-  <div class="symbol-bar">
-    <div class="symbol-input-wrapper">
-      <span class="symbol-search-icon">🔍</span>
-      <input
-        type="text"
-        id="symbol-input"
-        class="symbol-input"
-        value="CME_MINI:NQ1!"
-        placeholder="Ej: AAPL, EURUSD, BTCUSDT, CME_MINI:NQ1!"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button id="symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
-    </div>
-    <p id="symbol-error" class="symbol-error" hidden></p>
-    <div class="tf-selector">
-      <button class="tf-btn active" data-interval="5"   data-label="5 min">5 min</button>
-      <button class="tf-btn"        data-interval="15"  data-label="15 min">15 min</button>
-      <button class="tf-btn"        data-interval="30"  data-label="30 min">30 min</button>
-      <button class="tf-btn"        data-interval="60"  data-label="1 hora">1 hora</button>
-      <button class="tf-btn"        data-interval="240" data-label="4 horas">4 horas</button>
-      <button class="tf-btn"        data-interval="D"   data-label="1 día">1 día</button>
-    </div>
-  </div>
-
-  <!-- TradingView Chart -->
-  <div class="chart-wrapper">
-    <div id="tv-chart-container"></div>
-  </div>
-
-  <!-- Live signal row -->
-  <div class="nasdaq-live-grid">
-    <!-- TradingView Technical Analysis Widget – real live signal -->
-    <div class="card live-signal-card">
-      <h2><span class="icon">📡</span> Señal en Vivo – <span id="live-signal-tf">5 min</span> · <span id="live-signal-symbol" class="symbol-badge">NQ1!</span></h2>
-      <p class="ta-hint">Indicadores en tiempo real de TradingView (osciladores + medias móviles)</p>
-
-      <!-- TA-only symbol search + TF selector -->
-      <div class="ta-mini-bar">
-        <div class="symbol-input-wrapper">
-          <span class="symbol-search-icon">🔍</span>
-          <input
-            type="text"
-            id="ta-symbol-input"
-            class="symbol-input"
-            value="CME_MINI:NQ1!"
-            placeholder="Ej: EURUSD, NQ1!, AAPL, XAUUSD…"
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <button id="ta-symbol-apply-btn" class="symbol-apply-btn">Analizar</button>
-        </div>
-        <p id="ta-symbol-error" class="symbol-error" hidden></p>
-        <!-- Quick-select popular symbols -->
-        <div class="ta-symbol-chips">
-          <button class="ta-sym-chip" data-symbol="CME_MINI:NQ1!">NQ1! (Nasdaq)</button>
-          <button class="ta-sym-chip" data-symbol="EURUSD">EUR/USD</button>
-          <button class="ta-sym-chip" data-symbol="GBPUSD">GBP/USD</button>
-          <button class="ta-sym-chip" data-symbol="XAUUSD">Oro</button>
-          <button class="ta-sym-chip" data-symbol="BITSTAMP:BTCUSD">Bitcoin</button>
-          <button class="ta-sym-chip" data-symbol="NASDAQ:AAPL">AAPL</button>
-          <button class="ta-sym-chip" data-symbol="NASDAQ:SPY">SPY</button>
-        </div>
-        <div class="tf-selector ta-tf-selector">
-          <button class="ta-tf-btn active" data-interval="5">5 min</button>
-          <button class="ta-tf-btn" data-interval="15">15 min</button>
-          <button class="ta-tf-btn" data-interval="30">30 min</button>
-          <button class="ta-tf-btn" data-interval="60">1 hora</button>
-          <button class="ta-tf-btn" data-interval="240">4 horas</button>
-          <button class="ta-tf-btn" data-interval="D">1 día</button>
+        <div id="decision-guide"></div>
+        <div class="system-params">
+          <div class="sp-row"><span>Target por trade</span><span class="sp-val positive" id="sp-target">$400</span></div>
+          <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative" id="sp-stoploss">$300</span></div>
+          <div class="sp-row"><span>Win Rate objetivo</span><span class="sp-val neutral" id="sp-winrate">67%</span></div>
+          <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral" id="sp-rr">1.33</span></div>
+          <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning" id="sp-be">43%</span></div>
         </div>
       </div>
 
-      <div id="ta-widget-container"></div>
     </div>
 
-    <!-- Decision guide -->
-    <div class="card">
-      <h2><span class="icon">🧠</span> Cómo operar esta señal</h2>
-      <div id="decision-guide"></div>
-      <div class="system-params">
-        <div class="sp-row"><span>Target por trade</span><span class="sp-val positive" id="sp-target">$400</span></div>
-        <div class="sp-row"><span>Stop Loss por trade</span><span class="sp-val negative" id="sp-stoploss">$300</span></div>
-        <div class="sp-row"><span>Win Rate objetivo</span><span class="sp-val neutral" id="sp-winrate">67 %</span></div>
-        <div class="sp-row"><span>R/R ratio</span><span class="sp-val neutral" id="sp-rr">1.33</span></div>
-        <div class="sp-row"><span>Break-even mínimo</span><span class="sp-val warning" id="sp-be">43 %</span></div>
-      </div>
-    </div>
+    <!-- Collapsible per-timeframe strategic notes -->
+    <details class="card tf-tips-card" id="tf-tips-details">
+      <summary>
+        📚 Guía estratégica &mdash; <span id="tf-tips-label">5 min</span>
+        <span class="summary-hint">(clic para expandir)</span>
+      </summary>
+      <div id="tf-analysis-body" class="tf-analysis-body"></div>
+    </details>
+
   </div>
+</section>
 
-  <!-- Collapsible per-timeframe strategic notes -->
-  <details class="card tf-tips-card" id="tf-tips-details">
-    <summary>📚 Guía estratégica – <span id="tf-tips-label">5 min</span> <span class="summary-hint">(clic para expandir)</span></summary>
-    <div id="tf-analysis-body" class="tf-analysis-body"></div>
-  </details>
-</div>
-
-<button class="scroll-top-btn" id="scroll-top-btn" aria-label="Volver arriba" title="Volver arriba">↑</button>
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <span>📈 Trading Performance Calculator</span>
-    <span class="footer-sep">·</span>
-    <span>Herramienta educativa &mdash; no constituye asesoramiento financiero</span>
+<!-- ─── FOOTER ─────────────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">📈 TradingCalc Pro</div>
+      <p class="footer-desc">Herramienta educativa de análisis de rendimiento para traders profesionales y en formación. No constituye asesoramiento financiero.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="#calc-section" class="footer-link">Calculadora</a>
+      <a href="#results" class="footer-link">Resultados</a>
+      <a href="#nasdaq-section" class="footer-link">Análisis en Vivo</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <div class="container">
+      &copy; 2025 TradingCalc Pro &mdash; Solo fines educativos
+    </div>
   </div>
 </footer>
+
+<!-- Scroll to top -->
+<button class="scroll-top-btn" id="scroll-top-btn" aria-label="Volver arriba" title="Volver arriba">↑</button>
 
 <script src="calculator.js"></script>
 <script src="nasdaq.js"></script>

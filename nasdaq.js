@@ -142,9 +142,9 @@ function renderChart(interval, symbol) {
       theme: 'dark',
       style: '1',
       locale: 'es',
-      toolbar_bg: '#1a1d27',
-      backgroundColor: '#0f1117',
-      gridColor: '#2e3350',
+      toolbar_bg: '#0d1526',
+      backgroundColor: '#060c18',
+      gridColor: '#1e3054',
       enable_publishing: false,
       hide_top_toolbar: false,
       hide_side_toolbar: false,
@@ -537,14 +537,16 @@ document.addEventListener('calcParamsUpdated', () => {
     menuBtn.addEventListener('click', () => {
       const isHidden = mobileMenu.hidden;
       mobileMenu.hidden = !isHidden;
-      menuBtn.textContent = isHidden ? '✕' : '☰';
+      menuBtn.classList.toggle('open', isHidden);
+      menuBtn.setAttribute('aria-expanded', String(isHidden));
     });
 
     // Close mobile menu on link click
     mobileMenu.querySelectorAll('a').forEach(a => {
       a.addEventListener('click', () => {
         mobileMenu.hidden = true;
-        menuBtn.textContent = '☰';
+        menuBtn.classList.remove('open');
+        menuBtn.setAttribute('aria-expanded', 'false');
       });
     });
   }
