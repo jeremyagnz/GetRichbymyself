@@ -414,3 +414,245 @@ function updateSystemParams(p) {
   // Notify nasdaq.js via a custom event so it can refresh the decision guide.
   document.dispatchEvent(new CustomEvent('calcParamsUpdated'));
 }
+
+// ─── Profile / Risk Advisor ───────────────────────────────────────────────────
+
+// Sync slider label in real-time
+document.getElementById('profileRiskPct').addEventListener('input', function () {
+  document.getElementById('profileRiskPctLabel').textContent = parseFloat(this.value).toFixed(1) + '%';
+});
+
+document.getElementById('profileForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const capital     = parseFloat(document.getElementById('profileCapital').value)     || 0;
+  const riskPct     = parseFloat(document.getElementById('profileRiskPct').value)     || 1;
+  const goalMonthly = parseFloat(document.getElementById('profileGoalMonthly').value) || 0;
+  const daysPerWeek = parseInt(document.getElementById('profileDaysPerWeek').value)   || 5;
+  const hoursPerDay = parseInt(document.getElementById('profileHoursPerDay').value)   || 4;
+  const level       = document.getElementById('profileLevel').value;
+  const riskType    = document.getElementById('profileRiskType').value;
+
+  const profileErr = document.getElementById('profile-error');
+  profileErr.hidden = true;
+
+  if (capital < 100) {
+    profileErr.textContent = '⚠️ El capital disponible debe ser al menos $100.';
+    profileErr.hidden = false;
+    profileErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  if (goalMonthly <= 0) {
+    profileErr.textContent = '⚠️ El objetivo de ganancia mensual debe ser mayor a cero.';
+    profileErr.hidden = false;
+    profileErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  if (daysPerWeek < 1 || daysPerWeek > 7) {
+    profileErr.textContent = '⚠️ Los días por semana deben estar entre 1 y 7.';
+    profileErr.hidden = false;
+    return;
+  }
+
+  // Loading state
+  const btn = document.getElementById('profile-btn');
+  btn.querySelector('.btn-text').hidden = true;
+  btn.querySelector('.btn-spinner').hidden = false;
+  btn.disabled = true;
+
+  requestAnimationFrame(() => {
+    renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hoursPerDay, level, riskType });
+    btn.querySelector('.btn-text').hidden = false;
+    btn.querySelector('.btn-spinner').hidden = true;
+    btn.disabled = false;
+  });
+});
+
+function renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hoursPerDay, level, riskType }) {
+
+  // ── Core calculations ──────────────────────────────────────────────────────
+
+  // Risk per trade in $
+  const riskPerTrade = capital * (riskPct / 100);
+
+  // R/R ratio by risk profile
+  const rrMap = { conservative: 1.5, moderate: 2.0, aggressive: 2.5 };
+  const rrRatio = rrMap[riskType];
+
+  // Stop loss = risk per trade; target = SL × RR
+  const stopLoss = riskPerTrade;
+  const target   = stopLoss * rrRatio;
+
+  // Recommended trades per day (capped by experience level and available hours)
+  const maxByLevel = { beginner: 2, intermediate: 3, advanced: 5 };
+  const maxByHours = Math.max(1, Math.floor(hoursPerDay / 1.5));
+  const tradesPerDay = Math.min(maxByLevel[level], maxByHours);
+
+  // Monthly trade count (WEEKS_PER_MONTH ≈ 4.33)
+  const tradesPerMonth = tradesPerDay * daysPerWeek * WEEKS_PER_MONTH;
+
+  // Win rate needed to hit monthly goal:
+  //   goal = trades × (WR × target − (1−WR) × SL)
+  //   WR   = (goal/trades + SL) / (target + SL)
+  const neededWR = tradesPerMonth > 0
+    ? (goalMonthly / tradesPerMonth + stopLoss) / (target + stopLoss)
+    : 1;
+
+  // Break-even win rate
+  const breakEven = stopLoss / (target + stopLoss);
+
+  // Max recommended drawdown per risk profile
+  const ddPctMap = { conservative: 0.08, moderate: 0.12, aggressive: 0.18 };
+  const maxDrawdown = capital * ddPctMap[riskType];
+
+  // Typical win rate for each experience level
+  const typicalWRMap = { beginner: 0.50, intermediate: 0.58, advanced: 0.65 };
+  const typicalWR = typicalWRMap[level];
+
+  // Projected monthly profit at typical win rate
+  const projectedMonthly = tradesPerMonth * (typicalWR * target - (1 - typicalWR) * stopLoss);
+
+  // Return on capital (monthly)
+  const monthlyROC = projectedMonthly / capital;
+
+  // ── Viability banner ──────────────────────────────────────────────────────
+  let viabilityClass, viabilityMsg;
+  const goalToProjectedRatio = goalMonthly / Math.max(1, projectedMonthly);
+
+  if (neededWR <= breakEven) {
+    viabilityClass = 'ok';
+    viabilityMsg   = `✅ Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> es <strong>muy conservador</strong>. Con cualquier win rate superior al break-even (${fmtPct(breakEven * 100, 0)}) lo alcanzarás.`;
+  } else if (neededWR <= 0.50) {
+    viabilityClass = 'ok';
+    viabilityMsg   = `✅ Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> requiere un win rate de <strong>${fmtPct(neededWR * 100, 0)}</strong>. Es <strong>totalmente alcanzable</strong> con disciplina y un sistema probado.`;
+  } else if (neededWR <= 0.60) {
+    viabilityClass = 'ok';
+    viabilityMsg   = `📊 Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> requiere un win rate de <strong>${fmtPct(neededWR * 100, 0)}</strong>. Es <strong>alcanzable</strong> para traders con sistema disciplinado. Proyección típica de tu nivel: <strong>${fmtMoney(Math.max(0, projectedMonthly))}/mes</strong>.`;
+  } else if (neededWR <= 0.70) {
+    viabilityClass = 'warn';
+    viabilityMsg   = `⚠️ Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> requiere un win rate de <strong>${fmtPct(neededWR * 100, 0)}</strong>, que es <strong>exigente</strong>. Considera reducir el objetivo a <strong>${fmtMoney(Math.max(0, projectedMonthly))}</strong> (proyección real de tu perfil) o aumentar el capital.`;
+  } else if (neededWR < 1) {
+    viabilityClass = 'bad';
+    viabilityMsg   = `🔴 Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> requiere un win rate de <strong>${fmtPct(neededWR * 100, 0)}</strong>, lo cual es <strong>muy difícil de sostener</strong>. Recomendamos ajustar el objetivo a <strong>${fmtMoney(Math.max(0, projectedMonthly))}</strong> o aumentar el capital disponible.`;
+  } else {
+    viabilityClass = 'bad';
+    viabilityMsg   = `🚫 Tu objetivo de <strong>${fmtMoney(goalMonthly)}/mes</strong> es <strong>matemáticamente inalcanzable</strong> con los parámetros actuales. Reduce el objetivo o incrementa el capital.`;
+  }
+
+  // ── Parameters grid ───────────────────────────────────────────────────────
+  const wrNeededDisplay = neededWR < 0
+    ? '< 0% ✓'
+    : neededWR > 1
+      ? '> 100% ✗'
+      : fmtPct(neededWR * 100, 0);
+
+  const wrNeededClass = neededWR <= 0.55 ? 'positive' : neededWR <= 0.70 ? 'warning' : 'negative';
+
+  const paramsHTML = `
+  <div class="advice-params-grid">
+    <div class="advice-param">
+      <div class="advice-param-label">Riesgo por trade</div>
+      <div class="advice-param-value positive">${fmtMoney(riskPerTrade)}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">Stop Loss</div>
+      <div class="advice-param-value negative">${fmtMoney(stopLoss)}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">Target mínimo</div>
+      <div class="advice-param-value positive">${fmtMoney(target)}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">R/R ratio</div>
+      <div class="advice-param-value neutral">${rrRatio}:1</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">Trades / día rec.</div>
+      <div class="advice-param-value neutral">${tradesPerDay}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">Drawdown máx.</div>
+      <div class="advice-param-value warning">${fmtMoney(maxDrawdown)}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">Break-even WR</div>
+      <div class="advice-param-value neutral">${fmtPct(breakEven * 100, 0)}</div>
+    </div>
+    <div class="advice-param">
+      <div class="advice-param-label">WR necesario (meta)</div>
+      <div class="advice-param-value ${wrNeededClass}">${wrNeededDisplay}</div>
+    </div>
+  </div>`;
+
+  // ── Risk management rules ────────────────────────────────────────────────
+  const dailyRiskLimit = riskPerTrade * tradesPerDay;
+  const levelLabel = { beginner: `principiante (${fmtPct(typicalWRMap.beginner * 100, 0)} WR)`, intermediate: `intermedio (${fmtPct(typicalWRMap.intermediate * 100, 0)} WR)`, advanced: `avanzado (${fmtPct(typicalWRMap.advanced * 100, 0)} WR)` }[level];
+  const riskLabel  = { conservative: 'conservador', moderate: 'moderado', aggressive: 'agresivo' }[riskType];
+
+  const rules = [
+    { icon: '🛑', text: `Nunca arriesgues más del <strong>${riskPct}%</strong> de tu capital por operación (<strong>${fmtMoney(riskPerTrade)}</strong> máx.). Esta es tu regla número uno.` },
+    { icon: '📏', text: `Usa un stop loss fijo de <strong>${fmtMoney(stopLoss)}</strong> y un target mínimo de <strong>${fmtMoney(target)}</strong>. Con R/R ${rrRatio}:1 el sistema tiene ventaja matemática desde el break-even.` },
+    { icon: '📅', text: `Limítate a <strong>${tradesPerDay} trade${tradesPerDay > 1 ? 's' : ''}/día</strong> en <strong>${daysPerWeek} días/semana</strong>. El sobretradeo es el error más costoso de los traders nuevos.` },
+    { icon: '🛡️', text: `Establece una pérdida máxima diaria de <strong>${fmtMoney(dailyRiskLimit)}</strong>. Si la alcanzas, cierra la plataforma y retoma mañana.` },
+    { icon: '📈', text: `Tu break-even es <strong>${fmtPct(breakEven * 100, 0)}</strong>. Mientras tu win rate supere ese número, el sistema gana dinero a largo plazo. Enfócate en consistencia, no en trades perfectos.` },
+    { icon: '⏸️', text: `Después de <strong>3 pérdidas consecutivas</strong>, detente al menos 1 hora. El sesgo de recuperación emocional genera las mayores pérdidas.` },
+    { icon: '📒', text: `Lleva un diario de trading. Registra cada operación: activo, motivo de entrada, resultado y estado emocional. Revísalo cada semana.` },
+    { icon: '💰', text: `Con tu capital y perfil ${riskLabel}, un trader ${levelLabel} puede proyectar <strong>${fmtMoney(Math.max(0, projectedMonthly))}/mes</strong> (ROC: <strong>${fmtPct(monthlyROC * 100, 1)}</strong>).` },
+  ];
+
+  const adviceHTML = `
+  <div class="profile-viability ${viabilityClass}">${viabilityMsg}</div>
+  ${paramsHTML}
+  <div class="advice-section-title">🔑 Reglas de gestión de riesgo para tu perfil</div>
+  <ul class="advice-rules">
+    ${rules.map(r => `<li><span class="rule-icon">${r.icon}</span><span>${r.text}</span></li>`).join('')}
+  </ul>
+  <button class="btn-use-params" id="btn-use-params">
+    🚀 Usar estos parámetros en la Calculadora avanzada
+  </button>`;
+
+  // Show advice card
+  const adviceCard = document.getElementById('profileAdviceCard');
+  document.getElementById('profileAdviceContent').innerHTML = adviceHTML;
+  adviceCard.hidden = false;
+  adviceCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // ── Step-by-step plan panel ───────────────────────────────────────────────
+  const steps = [
+    { title: 'Configura tu cuenta', desc: `Deposita <strong>${fmtMoney(capital)}</strong> y establece tu drawdown máximo en <strong>${fmtMoney(maxDrawdown)}</strong> (${fmtPct(ddPctMap[riskType] * 100, 0)} del capital).` },
+    { title: 'Define tu setup', desc: `Elige UN solo sistema de entrada y aplícalo siempre igual. Stop <strong>${fmtMoney(stopLoss)}</strong> — Target <strong>${fmtMoney(target)}</strong>.` },
+    { title: 'Empieza en demo', desc: `Opera en demo durante al menos 30 días. Solo pasa a real cuando alcances consistentemente un win rate ≥ <strong>${fmtPct(breakEven * 100 + 5, 0)}</strong> durante 2 semanas seguidas.` },
+    { title: 'Controla el riesgo diario', desc: `Máximo <strong>${tradesPerDay} trade${tradesPerDay > 1 ? 's' : ''}/día</strong>. Si pierdes <strong>${fmtMoney(dailyRiskLimit)}</strong> en el día, cierra la sesión.` },
+    { title: 'Registra todo', desc: `Completa tu diario de trading después de cada sesión. La mejora continua viene de analizar tus propios datos.` },
+    { title: 'Evalúa cada mes', desc: `Revisa tu win rate real y expectativa. Si superas consistentemente el break-even (<strong>${fmtPct(breakEven * 100, 0)}</strong>), considera escalar gradualmente.` },
+    { title: 'Escala con prudencia', desc: `Solo aumenta el tamaño de posición cuando hayas demostrado rentabilidad en al menos 100 trades. Nunca subas el riesgo por encima del <strong>${riskPct}%</strong> hasta tener 6 meses de historial positivo.` },
+    { title: 'Proyección a 6 meses', desc: `Con disciplina y el perfil ${riskLabel}, la proyección a 6 meses es de <strong>${fmtMoney(Math.max(0, projectedMonthly) * 6)}</strong> adicional sobre tu capital inicial.` },
+  ];
+
+  const stepsHTML = `
+  <div class="profile-rules-full">
+    <h3>��️ Tu hoja de ruta para ser rentable</h3>
+    <div class="step-list">
+      ${steps.map((s, i) => `
+        <div class="step-item">
+          <div class="step-num">${i + 1}</div>
+          <div class="step-text"><strong>${s.title}</strong><br>${s.desc}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  const rulesPanel = document.getElementById('profileRulesPanel');
+  rulesPanel.innerHTML = stepsHTML;
+  rulesPanel.hidden = false;
+
+  // ── Wire "use params" button (assigned after innerHTML is set) ───────────
+  document.getElementById('btn-use-params').onclick = function () {
+    document.getElementById('target').value            = target.toFixed(2);
+    document.getElementById('stopLoss').value          = stopLoss.toFixed(2);
+    document.getElementById('tradesPerDay').value      = tradesPerDay;
+    document.getElementById('daysPerWeek').value       = daysPerWeek;
+    document.getElementById('capitalPerAccount').value = capital.toFixed(2);
+    document.getElementById('maxDrawdown').value       = maxDrawdown.toFixed(2);
+    document.getElementById('calc-section').scrollIntoView({ behavior: 'smooth' });
+  };
+}

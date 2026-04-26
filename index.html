@@ -20,12 +20,13 @@
     </a>
 
     <ul class="navbar-nav">
+      <li><a class="nav-link" href="#profile-section">Mi Perfil</a></li>
       <li><a class="nav-link" href="#calc-section">Calculadora</a></li>
       <li><a class="nav-link" href="#results">Resultados</a></li>
       <li><a class="nav-link" href="#nasdaq-section">Análisis en Vivo</a></li>
     </ul>
 
-    <a class="navbar-cta" href="#calc-section">Calcular ahora</a>
+    <a class="navbar-cta" href="#profile-section">Empezar aquí</a>
 
     <button class="navbar-mobile-toggle" id="nav-menu-btn" aria-label="Abrir menú" aria-expanded="false">
       <span class="hamburger-line"></span>
@@ -35,10 +36,11 @@
   </div>
 
   <div class="navbar-mobile-menu" id="nav-mobile-menu" hidden>
+    <a class="nav-mobile-link" href="#profile-section">Mi Perfil</a>
     <a class="nav-mobile-link" href="#calc-section">Calculadora</a>
     <a class="nav-mobile-link" href="#results">Resultados</a>
     <a class="nav-mobile-link" href="#nasdaq-section">Análisis en Vivo</a>
-    <a class="nav-mobile-link nav-mobile-cta" href="#calc-section">Calcular ahora →</a>
+    <a class="nav-mobile-link nav-mobile-cta" href="#profile-section">Empezar aquí →</a>
   </div>
 </nav>
 
@@ -75,13 +77,135 @@
     </div>
 
     <div class="hero-actions">
-      <a class="btn-hero-primary" href="#calc-section"><span>🚀</span> Calcular mi rendimiento</a>
+      <a class="btn-hero-primary" href="#profile-section"><span>🎯</span> Configurar mi perfil</a>
       <a class="btn-hero-secondary" href="#nasdaq-section">Ver mercados en vivo →</a>
     </div>
   </div>
 
   <div class="hero-scroll-indicator" aria-hidden="true">
     <div class="hero-scroll-mouse"><div class="hero-scroll-dot"></div></div>
+  </div>
+</section>
+
+<!-- ─── PROFILE / RISK ADVISOR SECTION ───────────────────────────────────── -->
+<section class="section" id="profile-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">00 &mdash; Mi Perfil de Cuenta</span>
+      <h2 class="section-heading">¿Cuánto estás dispuesto<br>a <span class="hero-heading-gradient">arriesgar</span>?</h2>
+      <p class="section-desc">Ingresa los parámetros de tu cuenta y te diremos exactamente cómo ser rentable con ellos: stop loss, target, trades por día, win rate necesario y más.</p>
+    </div>
+
+    <form id="profileForm" novalidate>
+      <div class="form-grid">
+
+        <!-- ── Inputs card ── -->
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="form-card-icon">🎯</div>
+            <div>
+              <div class="form-card-title">Tu Cuenta y Objetivos</div>
+              <div class="form-card-subtitle">Capital disponible, riesgo tolerado y meta mensual</div>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <div class="field">
+              <label for="profileCapital">
+                <span class="field-label-text">Capital total disponible para trading</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="profileCapital" value="5000" min="100" step="any" required placeholder="5000" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="profileRiskPct">
+                <span class="field-label-text">Riesgo máximo por trade</span>
+                <span class="field-label-unit profile-risk-label" id="profileRiskPctLabel">1.0%</span>
+              </label>
+              <input type="range" id="profileRiskPct" class="risk-slider" min="0.5" max="5" step="0.5" value="1" />
+              <div class="slider-labels">
+                <span>0.5% — Muy conservador</span>
+                <span>5% — Agresivo</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="profileGoalMonthly">
+                <span class="field-label-text">Objetivo de ganancia mensual</span>
+                <span class="field-label-unit">USD</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" id="profileGoalMonthly" value="1000" min="1" step="any" required placeholder="1000" />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="profileDaysPerWeek"><span class="field-label-text">Días / semana</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="profileDaysPerWeek" value="5" min="1" max="7" step="1" required placeholder="5" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="profileHoursPerDay"><span class="field-label-text">Horas / día</span></label>
+                <div class="input-wrapper">
+                  <input type="number" id="profileHoursPerDay" value="4" min="1" max="12" step="1" required placeholder="4" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="field">
+                <label for="profileLevel"><span class="field-label-text">Nivel de experiencia</span></label>
+                <select id="profileLevel" class="profile-select">
+                  <option value="beginner">Principiante</option>
+                  <option value="intermediate" selected>Intermedio</option>
+                  <option value="advanced">Avanzado</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="profileRiskType"><span class="field-label-text">Perfil de riesgo</span></label>
+                <select id="profileRiskType" class="profile-select">
+                  <option value="conservative">Conservador</option>
+                  <option value="moderate" selected>Moderado</option>
+                  <option value="aggressive">Agresivo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <div id="profile-error" class="form-error" hidden></div>
+            <button type="submit" class="btn-calculate" id="profile-btn">
+              <span class="btn-text">💡 Generar mi plan de trading</span>
+              <span class="btn-spinner" hidden>⏳ Analizando…</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Advice card ── -->
+        <div class="form-card form-card-accent" id="profileAdviceCard" hidden>
+          <div class="form-card-header">
+            <div class="form-card-icon">📋</div>
+            <div>
+              <div class="form-card-title">Tu Plan Personalizado</div>
+              <div class="form-card-subtitle">Parámetros y estrategia recomendados para tu perfil</div>
+            </div>
+          </div>
+          <div id="profileAdviceContent"></div>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- ── Full rules panel (shown below the grid) ── -->
+    <div id="profileRulesPanel" hidden></div>
+
   </div>
 </section>
 
