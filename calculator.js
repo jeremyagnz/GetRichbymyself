@@ -519,10 +519,13 @@ function renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hours
     ? riskPerTrade / (slPoints * ptValue)
     : null;
 
-  // Round to 2 decimal places and ensure minimum display is 0.01
+  // Round to 2 decimal places (no artificial floor — show true calculated value)
   const lotsDisplay = recommendedLots !== null
-    ? Math.max(0.01, Math.round(recommendedLots * 100) / 100)
+    ? Math.round(recommendedLots * 100) / 100
     : null;
+
+  // Flag if the calculated lots fall below the typical broker minimum of 0.01
+  const lotsBelowMin = lotsDisplay !== null && lotsDisplay < 0.01;
 
   const instrLabel = instrPreset ? instrPreset.label : 'instrumento seleccionado';
   const slUnitLabel = instrPreset ? instrPreset.slUnit : 'puntos';
@@ -629,7 +632,7 @@ function renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hours
     ${lotsDisplay !== null ? `
     <div class="advice-param advice-param-highlight">
       <div class="advice-param-label">📦 Lotes recomendados / trade</div>
-      <div class="advice-param-value neutral">${fmt(lotsDisplay, 2)} lotes</div>
+      <div class="advice-param-value ${lotsBelowMin ? 'warning' : 'neutral'}">${fmt(lotsDisplay, 2)} lotes${lotsBelowMin ? ' ⚠️' : ''}</div>
     </div>
     <div class="advice-param advice-param-highlight">
       <div class="advice-param-label">Instrumento</div>
@@ -646,7 +649,7 @@ function renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hours
     { icon: '🛑', text: `Nunca arriesgues más del <strong>${riskPct}%</strong> de tu capital por operación (<strong>${fmtMoney(riskPerTrade)}</strong> máx.). Esta es tu regla número uno.` },
     { icon: '📏', text: `Usa un stop loss fijo de <strong>${fmtMoney(stopLoss)}</strong> y un target mínimo de <strong>${fmtMoney(target)}</strong>. Con R/R ${rrRatio}:1 el sistema tiene ventaja matemática desde el break-even.` },
     lotsDisplay !== null
-      ? { icon: '📦', text: `Con un SL de <strong>${slPoints} ${slUnitLabel}</strong> en <strong>${instrLabel}</strong> (${fmtMoney(ptValue)}/punto/lote), el tamaño de posición recomendado es <strong>${fmt(lotsDisplay, 2)} lotes</strong> por operación para arriesgar exactamente ${fmtMoney(riskPerTrade)}.` }
+      ? { icon: '📦', text: `Con un SL de <strong>${slPoints} ${slUnitLabel}</strong> en <strong>${instrLabel}</strong> (${fmtMoney(ptValue)}/punto/lote), el tamaño de posición recomendado es <strong>${fmt(lotsDisplay, 2)} lotes</strong> por operación (riesgo real: ${fmtMoney(lotsDisplay * slPoints * ptValue)}).${lotsBelowMin ? ' ⚠️ Este valor es menor al mínimo habitual de 0.01 lotes — considera aumentar el capital o reducir el riesgo por trade.' : ''}` }
       : { icon: '📦', text: `Calcula tu tamaño de lote con la fórmula: <strong>lotes = riesgo USD ÷ (puntos SL × valor punto/lote)</strong>. Selecciona un instrumento en el formulario para obtener el valor calculado automáticamente.` },
     { icon: '📅', text: `Limítate a <strong>${tradesPerDay} trade${tradesPerDay > 1 ? 's' : ''}/día</strong> en <strong>${daysPerWeek} días/semana</strong>. El sobretradeo es el error más costoso de los traders nuevos.` },
     { icon: '🛡️', text: `Establece una pérdida máxima diaria de <strong>${fmtMoney(dailyRiskLimit)}</strong>. Si la alcanzas, cierra la plataforma y retoma mañana.` },
@@ -713,8 +716,8 @@ function renderProfileAdvice({ capital, riskPct, goalMonthly, daysPerWeek, hours
     // Also populate the bot section
     const botLotEl = document.getElementById('bot-lot-size');
     const botPvEl  = document.getElementById('bot-point-value');
-    if (botLotEl && lotsDisplay !== null) botLotEl.value = lotsDisplay.toFixed(2);
-    if (botPvEl  && ptValue     !== null) botPvEl.value  = ptValue;
+    if (botLotEl && lotsDisplay !== null && lotsDisplay > 0) botLotEl.value = lotsDisplay.toFixed(2);
+    if (botPvEl  && ptValue > 0)                            botPvEl.value  = ptValue;
 
     document.getElementById('calc-section').scrollIntoView({ behavior: 'smooth' });
   };
